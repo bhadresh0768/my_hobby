@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "683920588502",
+    "project_id": "business-diary-819f8",
+    "storage_bucket": "business-diary-819f8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683920588502:android:5ea289955376537f10d377",
+        "android_client_info": {
+          "package_name": "com.help.businessdiary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHswwXz3QZbXhoyKImPICXNuS2n0A3DjE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

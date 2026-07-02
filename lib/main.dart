@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
@@ -9,9 +10,14 @@ import 'app/screens/auth/login_screen.dart';
 import 'app/bloc/auth/auth_bloc.dart';
 import 'app/bloc/auth/auth_state.dart';
 import 'core/repositories/auth_repository.dart';
+import 'firebase_options.dart';
 
-void main() {
-  // Note: Firebase.initializeApp() would go here in a real environment
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(
     Provider<AuthRepository>(
       create: (_) => AuthRepository(),
