@@ -1,6 +1,9 @@
 class AppConstants {
   static const String appName = 'Business Diary';
   
+  // Database Configuration
+  static const String databaseId = 'business-diary';
+  
   // Collections
   static const String businessesCollection = 'businesses';
   static const String productsCollection = 'products';

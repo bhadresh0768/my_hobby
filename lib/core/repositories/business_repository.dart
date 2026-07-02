@@ -6,7 +6,7 @@ import '../../core/app_constants.dart';
 class BusinessRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
-    databaseId: 'business-diary',
+    databaseId: AppConstants.databaseId,
   );
 
   Future<void> registerBusiness(Business business) async {
