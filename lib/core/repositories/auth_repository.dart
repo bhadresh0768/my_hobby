@@ -1,16 +1,10 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../common/models/user_model.dart';
 
-import '../../core/app_constants.dart';
-
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(
-    app: Firebase.app(),
-    databaseId: AppConstants.databaseId,
-  );
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<User?> get userStream => _auth.authStateChanges();
 
