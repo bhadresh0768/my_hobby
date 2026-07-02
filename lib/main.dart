@@ -5,10 +5,8 @@ import 'l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'common/theme/app_theme.dart';
-import 'app/screens/home_screen.dart';
-import 'app/screens/auth/login_screen.dart';
+import 'app/screens/main_navigation_screen.dart';
 import 'app/bloc/auth/auth_bloc.dart';
-import 'app/bloc/auth/auth_state.dart';
 import 'core/repositories/auth_repository.dart';
 import 'core/repositories/business_repository.dart';
 import 'app/bloc/business/business_bloc.dart';
@@ -63,20 +61,8 @@ class BusinessDiaryApp extends StatelessWidget {
         Locale('hi', ''), // Hindi
       ],
       
-      // Root Screen with Auth State Management
-      home: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state.status == AuthStatus.authenticated) {
-            return const HomeScreen();
-          }
-          if (state.status == AuthStatus.loading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return const LoginScreen();
-        },
-      ),
+      // Root Screen: Always start with Navigation (Guest Friendly)
+      home: const MainNavigationScreen(),
     );
   }
 }
