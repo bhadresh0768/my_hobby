@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../common/models/business_model.dart';
 import '../../../core/repositories/business_repository.dart';
 import 'business_event.dart';
 import 'business_state.dart';
@@ -27,12 +28,21 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     }
   }
 
-  void _onFetchRequested(BusinessFetchRequested event, Emitter<BusinessState> emit) {
+  Future<void> _onFetchRequested(BusinessFetchRequested event, Emitter<BusinessState> emit) async {
     emit(state.copyWith(status: BusinessStatus.loading));
     _businessesSubscription?.cancel();
-    _businessesSubscription = _businessRepository.getBusinesses(category: event.category).listen(
-      (businesses) => add(BusinessUpdated(businesses)),
-      onError: (error) => emit(state.copyWith(status: BusinessStatus.error, errorMessage: error.toString())),
+    
+    // Use restartable or switchMap logic manually for the subscription
+    await emit.forEach<List<Business>>(
+      _businessRepository.getBusinesses(category: event.category),
+      onData: (businesses) => state.copyWith(
+        status: BusinessStatus.success,
+        businesses: businesses,
+      ),
+      onError: (error, stackTrace) => state.copyWith(
+        status: BusinessStatus.error,
+        errorMessage: error.toString(),
+      ),
     );
   }
 
