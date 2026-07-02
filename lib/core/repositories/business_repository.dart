@@ -1,9 +1,13 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../common/models/business_model.dart';
 import '../../core/app_constants.dart';
 
 class BusinessRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(
+    app: Firebase.app(),
+    databaseId: 'business-diary',
+  );
 
   Future<void> registerBusiness(Business business) async {
     await _firestore
