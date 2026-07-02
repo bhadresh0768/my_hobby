@@ -94,7 +94,7 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedCategory,
+                      initialValue: _selectedCategory,
                       decoration: const InputDecoration(labelText: 'Category'),
                       items: AppConstants.businessCategories.map((cat) {
                         return DropdownMenuItem(value: cat, child: Text(cat));

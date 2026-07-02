@@ -82,25 +82,25 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text('Login as:', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RadioListTile<UserRole>(
-                        title: const Text('Customer'),
-                        value: UserRole.customer,
-                        groupValue: _selectedRole,
-                        onChanged: (value) => setState(() => _selectedRole = value!),
+                RadioGroup<UserRole>(
+                  groupValue: _selectedRole,
+                  onChanged: (value) => setState(() => _selectedRole = value!),
+                  child: Row(
+                    children: const [
+                      Expanded(
+                        child: RadioListTile<UserRole>(
+                          title: Text('Customer'),
+                          value: UserRole.customer,
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: RadioListTile<UserRole>(
-                        title: const Text('Business'),
-                        value: UserRole.businessOwner,
-                        groupValue: _selectedRole,
-                        onChanged: (value) => setState(() => _selectedRole = value!),
+                      Expanded(
+                        child: RadioListTile<UserRole>(
+                          title: Text('Business'),
+                          value: UserRole.businessOwner,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 32),
                 BlocBuilder<AuthBloc, AuthState>(
