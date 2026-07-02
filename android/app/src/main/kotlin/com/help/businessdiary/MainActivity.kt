@@ -1,4 +1,4 @@
-package com.example.my_hobby
+package com.help.businessdiary
 
 import io.flutter.embedding.android.FlutterActivity
 
