@@ -4,9 +4,12 @@ import '../../l10n/app_localizations.dart';
 import '../../common/widgets/business_card.dart';
 import '../../common/models/business_model.dart';
 import '../../core/app_constants.dart';
-
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
+import '../bloc/business/business_bloc.dart';
+import '../bloc/business/business_event.dart';
+import '../bloc/business/business_state.dart';
+import 'business/business_registration_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +21,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'All';
   bool _isGridView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<BusinessBloc>().add(BusinessFetchRequested());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +57,27 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildSearchBar(l10n),
           _buildCategoryFilters(),
           Expanded(
-            child: _isGridView ? _buildBusinessGrid(l10n) : _buildBusinessList(l10n),
+            child: BlocBuilder<BusinessBloc, BusinessState>(
+              builder: (context, state) {
+                if (state.status == BusinessStatus.loading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state.businesses.isEmpty) {
+                  return const Center(child: Text('No businesses found.'));
+                }
+                return _isGridView 
+                    ? _buildBusinessGrid(state.businesses) 
+                    : _buildBusinessList(state.businesses);
+              },
+            ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Register Business
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const BusinessRegistrationScreen()),
+          );
         },
         label: Text(l10n.registerBusiness),
         icon: const Icon(Icons.add),
@@ -95,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   _selectedCategory = category;
                 });
+                context.read<BusinessBloc>().add(BusinessFetchRequested(category: category));
               },
               selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
               checkmarkColor: Theme.of(context).primaryColor,
@@ -105,15 +129,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBusinessList(AppLocalizations l10n) {
+  Widget _buildBusinessList(List<Business> businesses) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: 6,
-      itemBuilder: (context, index) => _buildMockCard(index),
+      itemCount: businesses.length,
+      itemBuilder: (context, index) => BusinessCard(
+        business: businesses[index],
+        onTap: () {},
+      ),
     );
   }
 
-  Widget _buildBusinessGrid(AppLocalizations l10n) {
+  Widget _buildBusinessGrid(List<Business> businesses) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -122,32 +149,11 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSpacing: 16,
         childAspectRatio: 0.75,
       ),
-      itemCount: 6,
-      itemBuilder: (context, index) => _buildMockCard(index),
-    );
-  }
-
-  Widget _buildMockCard(int index) {
-    final mockBusiness = Business(
-      id: 'mock_$index',
-      ownerId: 'owner_1',
-      name: 'Business $index',
-      category: 'Retail',
-      description: 'Description.',
-      location: 'Street $index',
-      city: 'City',
-      zipcode: '10001',
-      country: 'USA',
-      phoneNumber: '1234567890',
-      whatsappNumber: '1234567890',
-      email: 'test@biz.com',
-      isVerified: index % 2 == 0,
-      averageRating: 4.5,
-      totalReviews: 120,
-    );
-    return BusinessCard(
-      business: mockBusiness,
-      onTap: () {},
+      itemCount: businesses.length,
+      itemBuilder: (context, index) => BusinessCard(
+        business: businesses[index],
+        onTap: () {},
+      ),
     );
   }
 }

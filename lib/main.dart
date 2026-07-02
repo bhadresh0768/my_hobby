@@ -10,6 +10,8 @@ import 'app/screens/auth/login_screen.dart';
 import 'app/bloc/auth/auth_bloc.dart';
 import 'app/bloc/auth/auth_state.dart';
 import 'core/repositories/auth_repository.dart';
+import 'core/repositories/business_repository.dart';
+import 'app/bloc/business/business_bloc.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -19,10 +21,20 @@ void main() async {
   );
 
   runApp(
-    Provider<AuthRepository>(
-      create: (_) => AuthRepository(),
-      child: BlocProvider<AuthBloc>(
-        create: (context) => AuthBloc(authRepository: context.read<AuthRepository>()),
+    MultiProvider(
+      providers: [
+        Provider<AuthRepository>(create: (_) => AuthRepository()),
+        Provider<BusinessRepository>(create: (_) => BusinessRepository()),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>(
+            create: (context) => AuthBloc(authRepository: context.read<AuthRepository>()),
+          ),
+          BlocProvider<BusinessBloc>(
+            create: (context) => BusinessBloc(businessRepository: context.read<BusinessRepository>()),
+          ),
+        ],
         child: const BusinessDiaryApp(),
       ),
     ),
