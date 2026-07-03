@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../common/models/user_model.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import 'home_screen.dart';
@@ -83,11 +82,10 @@ class _ProfileWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        // If real user (not guest and logged in)
-        if (state.status == AuthStatus.authenticated && state.user != null && state.user!.role != UserRole.guest) {
+        // Now using explicit isGuest flag
+        if (state.status == AuthStatus.authenticated && !state.isGuest) {
           return const _PlaceholderScreen(title: 'Profile', icon: Icons.person, message: 'User Profile Details Here');
         }
-        // Otherwise show Login screen
         return const LoginScreen();
       },
     );
@@ -123,12 +121,8 @@ class _PlaceholderScreen extends StatelessWidget {
             const SizedBox(height: 24),
             BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
-                // Show button if NOT fully authenticated (Guest or Logged out)
-                final bool isRealUser = state.status == AuthStatus.authenticated && 
-                                       state.user != null && 
-                                       state.user!.role != UserRole.guest;
-                
-                if (!isRealUser) {
+                // Show button if user is a guest (even if "authenticated" anonymously)
+                if (state.isGuest || state.status == AuthStatus.unauthenticated) {
                   return ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).push(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../common/models/user_model.dart';
 import '../../../core/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -26,17 +27,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onUserChanged(AuthUserChanged event, Emitter<AuthState> emit) async {
     if (event.uid == null) {
-      emit(state.copyWith(status: AuthStatus.unauthenticated, user: null));
+      emit(state.copyWith(status: AuthStatus.unauthenticated, user: null, isGuest: false));
     } else {
       emit(state.copyWith(status: AuthStatus.loading));
       try {
         final userData = await _authRepository.getUserData(event.uid!);
+        // If we have data in Firestore, it's a real user. 
+        // If not, it's an anonymous/guest session.
+        final bool isGuest = userData == null || userData.role == UserRole.guest;
+        
         emit(state.copyWith(
           status: AuthStatus.authenticated,
           user: userData,
+          isGuest: isGuest,
         ));
       } catch (e) {
-        emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+        // Fallback for anonymous auth if Firestore fetch fails
+        emit(state.copyWith(
+          status: AuthStatus.authenticated, 
+          isGuest: true,
+          errorMessage: e.toString()
+        ));
       }
     }
   }
