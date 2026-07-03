@@ -29,11 +29,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(state.copyWith(status: AuthStatus.unauthenticated, user: null));
     } else {
       emit(state.copyWith(status: AuthStatus.loading));
-      final userData = await _authRepository.getUserData(event.uid!);
-      emit(state.copyWith(
-        status: AuthStatus.authenticated,
-        user: userData,
-      ));
+      try {
+        final userData = await _authRepository.getUserData(event.uid!);
+        emit(state.copyWith(
+          status: AuthStatus.authenticated,
+          user: userData,
+        ));
+      } catch (e) {
+        emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+      }
     }
   }
 

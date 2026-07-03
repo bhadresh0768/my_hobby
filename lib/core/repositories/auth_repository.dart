@@ -10,12 +10,16 @@ class AuthRepository {
 
   Future<UserModel?> getUserData(String uid) async {
     try {
-      final doc = await _firestore.collection('users').doc(uid).get();
+      final doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get()
+          .timeout(const Duration(seconds: 10)); // Add timeout to prevent infinite loading
       if (doc.exists) {
         return UserModel.fromFirestore(doc);
       }
     } catch (e) {
-      // Log or handle error appropriately
+      throw Exception('Failed to fetch user data: $e');
     }
     return null;
   }
