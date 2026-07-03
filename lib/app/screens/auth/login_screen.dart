@@ -23,7 +23,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state.status == AuthStatus.codeSent) {
+          if (state.status == AuthStatus.authenticated && !state.isGuest) {
+            // Close login screen if we are now authenticated as a real user
+            Navigator.of(context).pop();
+          } else if (state.status == AuthStatus.codeSent) {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => OtpVerificationScreen(

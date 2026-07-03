@@ -20,6 +20,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignInAnonymouslyRequested>(_onSignInAnonymouslyRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
 
+    // Initial check to move away from initial state immediately
+    add(AuthUserChanged(_authRepository.currentUser?.uid));
+
     _userSubscription = _authRepository.userStream.listen((user) {
       add(AuthUserChanged(user?.uid));
     });
@@ -29,20 +32,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (event.uid == null) {
       emit(state.copyWith(status: AuthStatus.unauthenticated, user: null, isGuest: false));
     } else {
+      // If we are already in loading state, it means a manual sign-in is in progress.
+      // We let the manual handler finish and emit the state to avoid race conditions.
+      if (state.status == AuthStatus.loading) return;
+
       emit(state.copyWith(status: AuthStatus.loading));
       try {
         final userData = await _authRepository.getUserData(event.uid!);
-        // If we have data in Firestore, it's a real user. 
-        // If not, it's an anonymous/guest session.
-        final bool isGuest = userData == null || userData.role == UserRole.guest;
+        final bool isFirebaseAnonymous = _authRepository.currentUser?.isAnonymous ?? false;
         
-        emit(state.copyWith(
-          status: AuthStatus.authenticated,
-          user: userData,
-          isGuest: isGuest,
-        ));
+        if (userData == null && !isFirebaseAnonymous) {
+          // Firebase user exists but no Firestore data and not anonymous.
+          // This happens if signup was interrupted. Treat as unauthenticated.
+          emit(state.copyWith(
+            status: AuthStatus.unauthenticated,
+            user: null,
+            isGuest: false,
+          ));
+        } else {
+          emit(state.copyWith(
+            status: AuthStatus.authenticated,
+            user: userData,
+            isGuest: isFirebaseAnonymous || (userData?.role == UserRole.guest),
+          ));
+        }
       } catch (e) {
-        // Fallback for anonymous auth if Firestore fetch fails
         emit(state.copyWith(
           status: AuthStatus.authenticated, 
           isGuest: true,
@@ -87,12 +101,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onOtpSubmitted(AuthOtpSubmitted event, Emitter<AuthState> emit) async {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
-      await _authRepository.signInWithOtp(
+      final userCredential = await _authRepository.signInWithOtp(
         verificationId: event.verificationId,
         smsCode: event.smsCode,
         name: event.name,
         role: event.role,
       );
+      
+      // Explicitly fetch user data after sign-in to ensure BLoC state is complete
+      // and to avoid race conditions with the auth state stream.
+      if (userCredential.user != null) {
+        final userData = await _authRepository.getUserData(userCredential.user!.uid);
+        emit(state.copyWith(
+          status: AuthStatus.authenticated,
+          user: userData,
+          isGuest: false,
+        ));
+      }
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
     }
@@ -103,6 +128,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       await _authRepository.signInAnonymously();
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        isGuest: true,
+      ));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
     }

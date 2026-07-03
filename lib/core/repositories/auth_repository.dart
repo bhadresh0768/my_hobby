@@ -7,6 +7,7 @@ class AuthRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<User?> get userStream => _auth.authStateChanges();
+  User? get currentUser => _auth.currentUser;
 
   Future<UserModel?> getUserData(String uid) async {
     try {

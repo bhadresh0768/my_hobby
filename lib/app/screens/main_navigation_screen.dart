@@ -82,10 +82,17 @@ class _ProfileWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        // Now using explicit isGuest flag
+        // Show profile only if authenticated as a real user
         if (state.status == AuthStatus.authenticated && !state.isGuest) {
           return const _PlaceholderScreen(title: 'Profile', icon: Icons.person, message: 'User Profile Details Here');
         }
+        
+        // Show loader during transition from initial/loading
+        if (state.status == AuthStatus.loading) {
+           return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
+        // Show login screen for unauthenticated, guest, or initial states
         return const LoginScreen();
       },
     );
@@ -121,8 +128,11 @@ class _PlaceholderScreen extends StatelessWidget {
             const SizedBox(height: 24),
             BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
-                // Show button if user is a guest (even if "authenticated" anonymously)
-                if (state.isGuest || state.status == AuthStatus.unauthenticated) {
+                // Show button if no user data exists (Guest, Unauthenticated, or Initial)
+                if (state.user == null || 
+                    state.isGuest ||
+                    state.status == AuthStatus.unauthenticated || 
+                    state.status == AuthStatus.initial) {
                   return ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).push(

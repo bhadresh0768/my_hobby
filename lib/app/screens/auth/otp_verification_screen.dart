@@ -40,7 +40,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       appBar: AppBar(title: const Text('Verify Number')),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state.status == AuthStatus.authenticated) {
+          if (state.status == AuthStatus.authenticated && !state.isGuest) {
             // Close the verification screen and go back to home/profile
             Navigator.of(context).pop(); 
           } else if (state.status == AuthStatus.error) {
