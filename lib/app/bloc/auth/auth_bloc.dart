@@ -19,6 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthOtpSubmitted>(_onOtpSubmitted);
     on<AuthSignInAnonymouslyRequested>(_onSignInAnonymouslyRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
+    on<AuthProfileUpdateRequested>(_onProfileUpdateRequested);
 
     // Initial check to move away from initial state immediately
     add(AuthUserChanged(_authRepository.currentUser?.uid));
@@ -148,6 +149,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         user: null,
         isGuest: false,
       ));
+    } catch (e) {
+      emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onProfileUpdateRequested(
+      AuthProfileUpdateRequested event, Emitter<AuthState> emit) async {
+    if (state.user == null) return;
+
+    emit(state.copyWith(status: AuthStatus.loading));
+    try {
+      String? photoUrl = state.user!.photoUrl;
+
+      if (event.imageFile != null) {
+        photoUrl = await _authRepository.uploadProfileImage(state.user!.uid, event.imageFile);
+      }
+
+      await _authRepository.updateUserProfile(state.user!.uid, {
+        'displayName': event.displayName,
+        'photoUrl': photoUrl,
+      });
+
+      final updatedUser = await _authRepository.getUserData(state.user!.uid);
+      emit(state.copyWith(status: AuthStatus.authenticated, user: updatedUser));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
     }

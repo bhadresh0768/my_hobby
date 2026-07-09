@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../common/models/user_model.dart';
 
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Stream<User?> get userStream => _auth.authStateChanges();
   User? get currentUser => _auth.currentUser;
@@ -85,6 +88,24 @@ class AuthRepository {
       }
     }
     return userCredential;
+  }
+
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    await _firestore.collection('users').doc(uid).update(data);
+    
+    // Also update FirebaseAuth profile if needed (displayName and photoURL)
+    if (data.containsKey('displayName')) {
+      await _auth.currentUser?.updateDisplayName(data['displayName']);
+    }
+    if (data.containsKey('photoUrl')) {
+      await _auth.currentUser?.updatePhotoURL(data['photoUrl']);
+    }
+  }
+
+  Future<String> uploadProfileImage(String uid, File imageFile) async {
+    final ref = _storage.ref().child('profile_images').child('$uid.jpg');
+    final uploadTask = await ref.putFile(imageFile);
+    return await uploadTask.ref.getDownloadURL();
   }
 
   Future<UserCredential> signInAnonymously() async {

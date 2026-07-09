@@ -58,3 +58,13 @@ class AuthVerificationFailed extends AuthEvent {
 class AuthSignInAnonymouslyRequested extends AuthEvent {}
 
 class AuthSignOutRequested extends AuthEvent {}
+
+class AuthProfileUpdateRequested extends AuthEvent {
+  final String displayName;
+  final dynamic imageFile; // Use dynamic to avoid mandatory dart:io import if needed in some contexts, but usually File is fine.
+
+  AuthProfileUpdateRequested({required this.displayName, this.imageFile});
+
+  @override
+  List<Object?> get props => [displayName, imageFile];
+}

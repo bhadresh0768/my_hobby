@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/auth/auth_event.dart';
 import 'home_screen.dart';
 import 'auth/login_screen.dart';
+import 'auth/edit_profile_screen.dart';
 import 'business/my_businesses_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -87,13 +89,33 @@ class _ProfileWrapper extends StatelessWidget {
         if (state.status == AuthStatus.authenticated && !state.isGuest) {
           final user = state.user;
           return Scaffold(
-            appBar: AppBar(title: const Text('Profile')),
+            appBar: AppBar(
+              title: const Text('Profile'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
             body: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const CircleAvatar(
-                  radius: 50,
-                  child: Icon(Icons.person, size: 50),
+                Center(
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: user?.photoUrl != null
+                        ? CachedNetworkImageProvider(user!.photoUrl!)
+                        : null,
+                    child: user?.photoUrl == null
+                        ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                        : null,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Center(
