@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
+import '../bloc/auth/auth_event.dart';
 import 'home_screen.dart';
 import 'auth/login_screen.dart';
+import 'business/my_businesses_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -82,17 +84,59 @@ class _ProfileWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        // Show profile only if authenticated as a real user
         if (state.status == AuthStatus.authenticated && !state.isGuest) {
-          return const _PlaceholderScreen(title: 'Profile', icon: Icons.person, message: 'User Profile Details Here');
+          final user = state.user;
+          return Scaffold(
+            appBar: AppBar(title: const Text('Profile')),
+            body: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                const CircleAvatar(
+                  radius: 50,
+                  child: Icon(Icons.person, size: 50),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: Text(
+                    user?.displayName ?? 'No Name',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    user?.phoneNumber ?? '',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ListTile(
+                  leading: const Icon(Icons.business_rounded, color: Colors.blue),
+                  title: const Text('My Businesses'),
+                  subtitle: const Text('Manage your registered businesses'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MyBusinessesScreen()),
+                    );
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text('Logout'),
+                  onTap: () {
+                    context.read<AuthBloc>().add(AuthSignOutRequested());
+                  },
+                ),
+              ],
+            ),
+          );
         }
         
-        // Show loader during transition from initial/loading
         if (state.status == AuthStatus.loading) {
            return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
-        // Show login screen for unauthenticated, guest, or initial states
         return const LoginScreen();
       },
     );

@@ -9,7 +9,8 @@ class AuthState extends Equatable {
   final String? verificationId;
   final String? errorMessage;
   final String? phoneNumber;
-  final bool isGuest; // Explicitly track guest status
+  final bool isGuest;
+  final bool? isNewUser; // Add this
 
   const AuthState({
     this.status = AuthStatus.initial,
@@ -18,6 +19,7 @@ class AuthState extends Equatable {
     this.errorMessage,
     this.phoneNumber,
     this.isGuest = false,
+    this.isNewUser,
   });
 
   AuthState copyWith({
@@ -27,6 +29,7 @@ class AuthState extends Equatable {
     String? errorMessage,
     String? phoneNumber,
     bool? isGuest,
+    bool? isNewUser,
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -35,9 +38,10 @@ class AuthState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       isGuest: isGuest ?? this.isGuest,
+      isNewUser: isNewUser ?? this.isNewUser,
     );
   }
 
   @override
-  List<Object?> get props => [status, user, verificationId, errorMessage, phoneNumber, isGuest];
+  List<Object?> get props => [status, user, verificationId, errorMessage, phoneNumber, isGuest, isNewUser];
 }

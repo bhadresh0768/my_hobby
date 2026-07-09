@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../common/models/business_model.dart';
 
-enum BusinessStatus { initial, loading, success, error }
+enum BusinessStatus { initial, loading, success, submissionSuccess, error }
 
 class BusinessState extends Equatable {
   final BusinessStatus status;

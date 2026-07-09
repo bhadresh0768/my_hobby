@@ -32,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 builder: (_) => OtpVerificationScreen(
                   verificationId: state.verificationId!,
                   phoneNumber: _completePhoneNumber,
+                  isNewUser: state.isNewUser ?? true,
                 ),
               ),
             );

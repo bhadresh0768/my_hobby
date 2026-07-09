@@ -40,9 +40,12 @@ class AuthOtpSubmitted extends AuthEvent {
 class AuthCodeSent extends AuthEvent {
   final String verificationId;
   final int? resendToken;
-  AuthCodeSent(this.verificationId, this.resendToken);
+  final bool isNewUser;
+  
+  AuthCodeSent(this.verificationId, this.resendToken, this.isNewUser);
+  
   @override
-  List<Object?> get props => [verificationId, resendToken];
+  List<Object?> get props => [verificationId, resendToken, isNewUser];
 }
 
 class AuthVerificationFailed extends AuthEvent {

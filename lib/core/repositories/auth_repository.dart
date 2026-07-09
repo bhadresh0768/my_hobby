@@ -25,6 +25,19 @@ class AuthRepository {
     return null;
   }
 
+  Future<bool> checkIfUserExists(String phoneNumber) async {
+    try {
+      final result = await _firestore
+          .collection('users')
+          .where('phoneNumber', isEqualTo: phoneNumber)
+          .limit(1)
+          .get();
+      return result.docs.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
     required Function(String verificationId, int? resendToken) onCodeSent,

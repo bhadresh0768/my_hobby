@@ -10,11 +10,13 @@ import '../../../common/models/user_model.dart';
 class OtpVerificationScreen extends StatefulWidget {
   final String verificationId;
   final String phoneNumber;
+  final bool isNewUser;
 
   const OtpVerificationScreen({
     super.key,
     required this.verificationId,
     required this.phoneNumber,
+    this.isNewUser = true,
   });
 
   @override
@@ -71,40 +73,42 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   maxLength: 6,
                   validator: (value) => Validators.validateRequired(value, 'OTP'),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person),
+                if (widget.isNewUser) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Full Name',
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: (value) => Validators.validateRequired(value, 'Name'),
                   ),
-                  validator: (value) => Validators.validateRequired(value, 'Name'),
-                ),
-                const SizedBox(height: 24),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Login as:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                RadioGroup<UserRole>(
-                  groupValue: _selectedRole,
-                  onChanged: (value) => setState(() => _selectedRole = value!),
-                  child: Row(
-                    children: const [
+                  const SizedBox(height: 24),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Login as:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                  Row(
+                    children: [
                       Expanded(
                         child: RadioListTile<UserRole>(
-                          title: Text('Customer'),
+                          title: const Text('Customer'),
                           value: UserRole.customer,
+                          groupValue: _selectedRole,
+                          onChanged: (value) => setState(() => _selectedRole = value!),
                         ),
                       ),
                       Expanded(
                         child: RadioListTile<UserRole>(
-                          title: Text('Business'),
+                          title: const Text('Business'),
                           value: UserRole.businessOwner,
+                          groupValue: _selectedRole,
+                          onChanged: (value) => setState(() => _selectedRole = value!),
                         ),
                       ),
                     ],
                   ),
-                ),
+                ],
                 const SizedBox(height: 32),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
@@ -117,8 +121,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                                 AuthOtpSubmitted(
                                   verificationId: widget.verificationId,
                                   smsCode: _otpController.text.trim(),
-                                  name: _nameController.text.trim(),
-                                  role: _selectedRole,
+                                  name: widget.isNewUser ? _nameController.text.trim() : '',
+                                  role: widget.isNewUser ? _selectedRole : UserRole.customer,
                                 ),
                               );
                         }

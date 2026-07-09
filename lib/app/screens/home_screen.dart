@@ -6,10 +6,12 @@ import '../../common/models/business_model.dart';
 import '../../core/app_constants.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
+import '../bloc/auth/auth_state.dart';
 import '../bloc/business/business_bloc.dart';
 import '../bloc/business/business_event.dart';
 import '../bloc/business/business_state.dart';
 import 'business/business_registration_screen.dart';
+import 'business/business_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,34 +46,49 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              context.read<AuthBloc>().add(AuthSignOutRequested());
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              // Show logout only if fully authenticated (not guest)
+              if (state.status == AuthStatus.authenticated && !state.isGuest) {
+                return IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () => _showLogoutDialog(context),
+                );
+              }
+              return const SizedBox.shrink();
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(l10n),
-          _buildCategoryFilters(),
-          Expanded(
-            child: BlocBuilder<BusinessBloc, BusinessState>(
-              builder: (context, state) {
-                if (state.status == BusinessStatus.loading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state.businesses.isEmpty) {
-                  return const Center(child: Text('No businesses found.'));
-                }
-                return _isGridView 
-                    ? _buildBusinessGrid(state.businesses) 
-                    : _buildBusinessList(state.businesses);
-              },
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state.status == AuthStatus.unauthenticated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Logged out successfully')),
+            );
+          }
+        },
+        child: Column(
+          children: [
+            _buildSearchBar(l10n),
+            _buildCategoryFilters(),
+            Expanded(
+              child: BlocBuilder<BusinessBloc, BusinessState>(
+                builder: (context, state) {
+                  if (state.status == BusinessStatus.loading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (state.businesses.isEmpty) {
+                    return const Center(child: Text('No businesses found.'));
+                  }
+                  return _isGridView
+                      ? _buildBusinessGrid(state.businesses)
+                      : _buildBusinessList(state.businesses);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -135,7 +152,13 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: businesses.length,
       itemBuilder: (context, index) => BusinessCard(
         business: businesses[index],
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => BusinessDetailsScreen(business: businesses[index]),
+            ),
+          );
+        },
       ),
     );
   }
@@ -152,7 +175,95 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: businesses.length,
       itemBuilder: (context, index) => BusinessCard(
         business: businesses[index],
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => BusinessDetailsScreen(business: businesses[index]),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Colors.red,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Logout',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Are you sure you want to logout? You will need to verify your number again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.read<AuthBloc>().add(AuthSignOutRequested());
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Logout'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

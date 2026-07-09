@@ -70,10 +70,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       AuthPhoneVerificationRequested event, Emitter<AuthState> emit) async {
     emit(state.copyWith(status: AuthStatus.loading, phoneNumber: event.phoneNumber));
     try {
+      final bool exists = await _authRepository.checkIfUserExists(event.phoneNumber);
+
       await _authRepository.verifyPhoneNumber(
         phoneNumber: event.phoneNumber,
         onCodeSent: (verificationId, resendToken) {
-          add(AuthCodeSent(verificationId, resendToken));
+          add(AuthCodeSent(verificationId, resendToken, !exists));
         },
         onVerificationFailed: (e) {
           add(AuthVerificationFailed(e.message ?? 'Verification Failed'));
@@ -91,6 +93,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(
       status: AuthStatus.codeSent,
       verificationId: event.verificationId,
+      isNewUser: event.isNewUser,
     ));
   }
 
@@ -138,7 +141,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onSignOutRequested(AuthSignOutRequested event, Emitter<AuthState> emit) async {
-    await _authRepository.signOut();
+    try {
+      await _authRepository.signOut();
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        user: null,
+        isGuest: false,
+      ));
+    } catch (e) {
+      emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+    }
   }
 
   @override

@@ -13,11 +13,32 @@ class BusinessRegisterRequested extends BusinessEvent {
   List<Object?> get props => [business];
 }
 
+class BusinessUpdateRequested extends BusinessEvent {
+  final Business business;
+  BusinessUpdateRequested(this.business);
+  @override
+  List<Object?> get props => [business];
+}
+
 class BusinessFetchRequested extends BusinessEvent {
   final String? category;
   BusinessFetchRequested({this.category});
   @override
   List<Object?> get props => [category];
+}
+
+class BusinessFetchMyBusinessesRequested extends BusinessEvent {
+  final String ownerId;
+  BusinessFetchMyBusinessesRequested(this.ownerId);
+  @override
+  List<Object?> get props => [ownerId];
+}
+
+class BusinessDeleteRequested extends BusinessEvent {
+  final String id;
+  BusinessDeleteRequested(this.id);
+  @override
+  List<Object?> get props => [id];
 }
 
 class BusinessUpdated extends BusinessEvent {
