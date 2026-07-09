@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../common/models/business_model.dart';
+import 'full_screen_image_viewer.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
   final Business business;
@@ -35,6 +36,18 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
     } else {
       _launchUrl('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(widget.business.location)}');
     }
+  }
+
+  void _openFullScreenImage(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FullScreenImageViewer(
+          imageUrls: widget.business.imageUrls,
+          initialIndex: index,
+        ),
+      ),
+    );
   }
 
   @override
@@ -103,7 +116,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(Icons.location_on_rounded, color: Theme.of(context).primaryColor),
@@ -164,62 +177,74 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
             shadows: [Shadow(color: Colors.black54, blurRadius: 8)],
           ),
         ),
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            widget.business.imageUrls.isNotEmpty
-                ? PageView.builder(
-                    controller: _pageController,
-                    itemCount: widget.business.imageUrls.length,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentPage = index;
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      return CachedNetworkImage(
-                        imageUrl: widget.business.imageUrls[index],
-                        fit: BoxFit.cover,
-                      );
-                    },
-                  )
-                : Container(
-                    color: Theme.of(context).primaryColor,
-                    child: const Icon(Icons.business, size: 100, color: Colors.white54),
-                  ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black54],
-                ),
-              ),
-            ),
-            if (widget.business.imageUrls.length > 1)
-              Positioned(
-                bottom: 60,
-                left: 0,
-                right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    widget.business.imageUrls.length,
-                    (index) => Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _currentPage == index
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.5),
-                      ),
+        background: GestureDetector(
+          onTap: () {
+            if (widget.business.imageUrls.isNotEmpty) {
+              _openFullScreenImage(_currentPage);
+            }
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              widget.business.imageUrls.isNotEmpty
+                  ? PageView.builder(
+                      controller: _pageController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: widget.business.imageUrls.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return CachedNetworkImage(
+                          imageUrl: widget.business.imageUrls[index],
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    )
+                  : Container(
+                      color: Theme.of(context).primaryColor,
+                      child: const Icon(Icons.business, size: 100, color: Colors.white54),
+                    ),
+              const IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black54],
                     ),
                   ),
                 ),
               ),
-          ],
+              if (widget.business.imageUrls.length > 1)
+                Positioned(
+                  bottom: 60,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        widget.business.imageUrls.length,
+                        (index) => Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentPage == index
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -254,7 +279,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color),
@@ -288,7 +313,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: (color ?? Theme.of(context).primaryColor).withOpacity(0.1),
+          color: (color ?? Theme.of(context).primaryColor).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: color ?? Theme.of(context).primaryColor),

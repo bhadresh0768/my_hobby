@@ -38,14 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
-          IconButton(
-            icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
-            onPressed: () {
-              setState(() {
-                _isGridView = !_isGridView;
-              });
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
+          //   onPressed: () {
+          //     setState(() {
+          //       _isGridView = !_isGridView;
+          //     });
+          //   },
+          // ),
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               // Show logout only if fully authenticated (not guest)
