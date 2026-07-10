@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../common/models/business_model.dart';
 import '../../../common/utils/validators.dart';
 import '../../../core/app_constants.dart';
+import 'package:csc_picker_plus/csc_picker_plus.dart';
 import '../../../core/repositories/business_repository.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/business/business_bloc.dart';
@@ -41,6 +42,9 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
   final _customCategoryController = TextEditingController();
   
   String _selectedCategory = AppConstants.businessCategories.first;
+  String _selectedCountry = 'India';
+  String? _selectedState = '';
+  String? _selectedCity = '';
   final List<String> _imageUrls = [];
   final List<File> _newImages = [];
 
@@ -54,6 +58,8 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
       _cityController.text = widget.business!.city;
       _zipcodeController.text = widget.business!.zipcode;
       _countryController.text = widget.business!.country;
+      _selectedCountry = widget.business!.country;
+      _selectedCity = widget.business!.city;
       _phoneController.text = widget.business!.phoneNumber;
       _whatsappController.text = widget.business!.whatsappNumber;
       _emailController.text = widget.business!.email;
@@ -321,30 +327,35 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                           validator: (value) => Validators.validateRequired(value, 'Address'),
                         ),
                         const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _cityController,
-                                decoration: const InputDecoration(labelText: 'City'),
-                                validator: (value) => Validators.validateRequired(value, 'City'),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _zipcodeController,
-                                decoration: const InputDecoration(labelText: 'Zipcode'),
-                                validator: (value) => Validators.validateRequired(value, 'Zipcode'),
-                              ),
-                            ),
-                          ],
+                        CSCPickerPlus(
+                          onCountryChanged: (value) {
+                            setState(() {
+                              _selectedCountry = value;
+                              _countryController.text = value;
+                            });
+                          },
+                          onStateChanged: (value) {
+                            setState(() {
+                              _selectedState = value;
+                            });
+                          },
+                          onCityChanged: (value) {
+                            setState(() {
+                              _selectedCity = value;
+                              _cityController.text = value ?? '';
+                            });
+                          },
+                          currentCountry: _selectedCountry,
+                          currentState: _selectedState,
+                          currentCity: _selectedCity,
+                          layout: Layout.vertical,
+                          flagState: CountryFlag.ENABLE,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
-                          controller: _countryController,
-                          decoration: const InputDecoration(labelText: 'Country'),
-                          validator: (value) => Validators.validateRequired(value, 'Country'),
+                          controller: _zipcodeController,
+                          decoration: const InputDecoration(labelText: 'Zipcode'),
+                          validator: (value) => Validators.validateRequired(value, 'Zipcode'),
                         ),
                       ],
                     ),
@@ -398,6 +409,12 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
     if (_isUploading) return;
 
     if (_formKey.currentState!.validate()) {
+      if (_selectedCountry.isEmpty || _selectedCity == null || _selectedCity!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select Country and City')),
+        );
+        return;
+      }
       setState(() => _isUploading = true);
       
       final authState = context.read<AuthBloc>().state;
