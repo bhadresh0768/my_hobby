@@ -43,8 +43,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.authenticated && !state.isGuest) {
-            // Close the verification screen and go back to home/profile
-            Navigator.of(context).pop(); 
+            // Clear the auth stack and return to root navigation
+            // This ensures we land back on MainNavigationScreen which will show the home UI
+            Navigator.of(context).popUntil((route) => route.isFirst);
           } else if (state.status == AuthStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.errorMessage ?? 'Verification Error')),

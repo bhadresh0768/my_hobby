@@ -31,7 +31,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onUserChanged(AuthUserChanged event, Emitter<AuthState> emit) async {
     if (event.uid == null) {
-      emit(state.copyWith(status: AuthStatus.unauthenticated, user: null, isGuest: false));
+      emit(const AuthState(status: AuthStatus.unauthenticated));
     } else {
       // If we are already in loading state, it means a manual sign-in is in progress.
       // We let the manual handler finish and emit the state to avoid race conditions.
@@ -45,11 +45,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (userData == null && !isFirebaseAnonymous) {
           // Firebase user exists but no Firestore data and not anonymous.
           // This happens if signup was interrupted. Treat as unauthenticated.
-          emit(state.copyWith(
-            status: AuthStatus.unauthenticated,
-            user: null,
-            isGuest: false,
-          ));
+          emit(const AuthState(status: AuthStatus.unauthenticated));
         } else {
           emit(state.copyWith(
             status: AuthStatus.authenticated,
@@ -144,11 +140,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onSignOutRequested(AuthSignOutRequested event, Emitter<AuthState> emit) async {
     try {
       await _authRepository.signOut();
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        user: null,
-        isGuest: false,
-      ));
+      emit(const AuthState(status: AuthStatus.unauthenticated));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
     }

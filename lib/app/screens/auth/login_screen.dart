@@ -24,8 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.authenticated && !state.isGuest) {
-            // Close login screen if we are now authenticated as a real user
-            Navigator.of(context).pop();
+            // No longer need to pop here. 
+            // If we are at the root, MainNavigationScreen swaps the UI.
+            // If we were pushed (from guest profile), OtpVerificationScreen handles the popUntil.
           } else if (state.status == AuthStatus.codeSent) {
             Navigator.of(context).push(
               MaterialPageRoute(

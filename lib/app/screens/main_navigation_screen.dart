@@ -42,39 +42,61 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        // 1. Initial Loading (App Start)
+        if (state.status == AuthStatus.initial || 
+           (state.status == AuthStatus.loading && state.user == null && state.phoneNumber == null)) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
+        // 2. Login Flow (Unauthenticated or currently authenticating)
+        // We stay on the LoginScreen (which will push OTP screen) during the whole flow.
+        final bool isAuthenticating = state.status == AuthStatus.codeSent || 
+                                     state.status == AuthStatus.loading ||
+                                     state.status == AuthStatus.error;
+
+        if (!state.isGuest && state.user == null && 
+            (state.status == AuthStatus.unauthenticated || isAuthenticating)) {
+          return const LoginScreen();
+        }
+
+        // 3. Main App UI (Authenticated or Guest)
+        return Scaffold(
+          body: Center(
+            child: _widgetOptions.elementAt(_selectedIndex),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_outline),
-            activeIcon: Icon(Icons.favorite),
-            label: 'Favorites',
+          bottomNavigationBar: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.favorite_outline),
+                activeIcon: Icon(Icons.favorite),
+                label: 'Favorites',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.local_offer_outlined),
+                activeIcon: Icon(Icons.local_offer),
+                label: 'Offers',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: Theme.of(context).primaryColor,
+            unselectedItemColor: Colors.grey,
+            type: BottomNavigationBarType.fixed,
+            onTap: _onItemTapped,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.local_offer_outlined),
-            activeIcon: Icon(Icons.local_offer),
-            label: 'Offers',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-      ),
+        );
+      },
     );
   }
 }
@@ -154,12 +176,8 @@ class _ProfileWrapper extends StatelessWidget {
             ),
           );
         }
-        
-        if (state.status == AuthStatus.loading) {
-           return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
 
-        return const LoginScreen();
+        return const SizedBox.shrink();
       },
     );
   }
