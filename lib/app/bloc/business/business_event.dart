@@ -47,3 +47,10 @@ class BusinessUpdated extends BusinessEvent {
   @override
   List<Object?> get props => [businesses];
 }
+
+class BusinessErrorOccurred extends BusinessEvent {
+  final String errorMessage;
+  BusinessErrorOccurred(this.errorMessage);
+  @override
+  List<Object?> get props => [errorMessage];
+}

@@ -9,6 +9,7 @@ class UserModel {
   final UserRole role;
   final String? photoUrl;
   final DateTime createdAt;
+  final List<String> favorites;
 
   UserModel({
     required this.uid,
@@ -17,6 +18,7 @@ class UserModel {
     required this.role,
     this.photoUrl,
     required this.createdAt,
+    this.favorites = const [],
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -28,6 +30,7 @@ class UserModel {
       role: _parseRole(data['role']),
       photoUrl: data['photoUrl'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
+      favorites: List<String>.from(data['favorites'] ?? []),
     );
   }
 
@@ -51,6 +54,7 @@ class UserModel {
       'role': role.name,
       'photoUrl': photoUrl,
       'createdAt': Timestamp.fromDate(createdAt),
+      'favorites': favorites,
     };
   }
 }

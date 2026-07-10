@@ -68,3 +68,12 @@ class AuthProfileUpdateRequested extends AuthEvent {
   @override
   List<Object?> get props => [displayName, imageFile];
 }
+
+class AuthToggleFavoriteRequested extends AuthEvent {
+  final String businessId;
+
+  AuthToggleFavoriteRequested(this.businessId);
+
+  @override
+  List<Object?> get props => [businessId];
+}

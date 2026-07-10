@@ -19,6 +19,7 @@ class Business {
   final bool isVerified;
   final double averageRating;
   final int totalReviews;
+  final int favoriteCount;
   final List<String> imageUrls;
   final Map<String, dynamic>? metadata;
 
@@ -41,6 +42,7 @@ class Business {
     this.isVerified = false,
     this.averageRating = 0.0,
     this.totalReviews = 0,
+    this.favoriteCount = 0,
     this.imageUrls = const [],
     this.metadata,
   });
@@ -66,6 +68,7 @@ class Business {
       isVerified: data['isVerified'] ?? false,
       averageRating: (data['averageRating'] ?? 0.0).toDouble(),
       totalReviews: data['totalReviews'] ?? 0,
+      favoriteCount: data['favoriteCount'] ?? 0,
       imageUrls: List<String>.from(data['imageUrls'] ?? []),
       metadata: data['metadata'],
     );
@@ -90,6 +93,7 @@ class Business {
       'isVerified': isVerified,
       'averageRating': averageRating,
       'totalReviews': totalReviews,
+      'favoriteCount': favoriteCount,
       'imageUrls': imageUrls,
       'metadata': metadata,
     };

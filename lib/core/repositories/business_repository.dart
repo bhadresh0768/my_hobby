@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -59,7 +60,26 @@ class BusinessRepository {
   }
 
   Future<void> deleteBusiness(String id) async {
-    await _firestore.collection(AppConstants.businessesCollection).doc(id).delete();
+    try {
+      // 1. Delete all images from Storage for this business
+      // Images are stored under: business_images / businessId / ...
+      final storageFolder = _storage.ref().child('business_images').child(id.trim());
+      
+      try {
+        final listResult = await storageFolder.listAll();
+        // Delete all files in the folder
+        await Future.wait(listResult.items.map((item) => item.delete()));
+      } catch (e) {
+        // Log or handle storage deletion failure (e.g. folder already empty or doesn't exist)
+        // We don't want to block Firestore deletion if Storage cleanup fails
+        debugPrint('Storage cleanup warning for business $id: $e');
+      }
+
+      // 2. Delete from Firestore
+      await _firestore.collection(AppConstants.businessesCollection).doc(id).delete();
+    } catch (e) {
+      throw Exception('Failed to delete business: $e');
+    }
   }
 
   Future<File?> _compressImage(File file) async {

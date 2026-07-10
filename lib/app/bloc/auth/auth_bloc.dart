@@ -20,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignInAnonymouslyRequested>(_onSignInAnonymouslyRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthProfileUpdateRequested>(_onProfileUpdateRequested);
+    on<AuthToggleFavoriteRequested>(_onToggleFavoriteRequested);
 
     // Initial check to move away from initial state immediately
     add(AuthUserChanged(_authRepository.currentUser?.uid));
@@ -167,6 +168,42 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(state.copyWith(status: AuthStatus.authenticated, user: updatedUser));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onToggleFavoriteRequested(
+      AuthToggleFavoriteRequested event, Emitter<AuthState> emit) async {
+    if (state.user == null) return;
+
+    final originalUser = state.user!;
+    final isFavorite = originalUser.favorites.contains(event.businessId);
+    
+    try {
+      // 1. Optimistic update
+      final newFavorites = List<String>.from(originalUser.favorites);
+      if (isFavorite) {
+        newFavorites.remove(event.businessId);
+      } else {
+        newFavorites.add(event.businessId);
+      }
+
+      final optimisticUser = UserModel(
+        uid: originalUser.uid,
+        phoneNumber: originalUser.phoneNumber,
+        displayName: originalUser.displayName,
+        role: originalUser.role,
+        photoUrl: originalUser.photoUrl,
+        createdAt: originalUser.createdAt,
+        favorites: newFavorites,
+      );
+
+      emit(state.copyWith(user: optimisticUser));
+
+      // 2. Database update
+      await _authRepository.toggleFavorite(originalUser.uid, event.businessId, !isFavorite);
+    } catch (e) {
+      // 3. Rollback on error - use the originalUser captured at the start
+      emit(state.copyWith(user: originalUser, status: AuthStatus.error, errorMessage: e.toString()));
     }
   }
 

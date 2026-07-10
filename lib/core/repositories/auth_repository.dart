@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../../common/models/user_model.dart';
+import '../app_constants.dart';
 
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -99,6 +100,35 @@ class AuthRepository {
     }
     if (data.containsKey('photoUrl')) {
       await _auth.currentUser?.updatePhotoURL(data['photoUrl']);
+    }
+  }
+
+  Future<void> toggleFavorite(String uid, String businessId, bool isFavorite) async {
+    final userRef = _firestore.collection(AppConstants.usersCollection).doc(uid);
+    final businessRef = _firestore.collection(AppConstants.businessesCollection).doc(businessId);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        // Perform reads first (required for transactions)
+        await transaction.get(userRef);
+        await transaction.get(businessRef);
+
+        // 1. Update User Favorites
+        transaction.update(userRef, {
+          'favorites': isFavorite
+              ? FieldValue.arrayUnion([businessId])
+              : FieldValue.arrayRemove([businessId]),
+        });
+
+        // 2. Update Business Favorite Count
+        transaction.set(businessRef, {
+          'favoriteCount': isFavorite
+              ? FieldValue.increment(1)
+              : FieldValue.increment(-1),
+        }, SetOptions(merge: true));
+      });
+    } catch (e) {
+      throw Exception('Failed to update favorite: $e');
     }
   }
 

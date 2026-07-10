@@ -437,6 +437,7 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
           isVerified: widget.business?.isVerified ?? false,
           averageRating: widget.business?.averageRating ?? 0.0,
           totalReviews: widget.business?.totalReviews ?? 0,
+          favoriteCount: widget.business?.favoriteCount ?? 0,
         );
 
         if (widget.business != null) {

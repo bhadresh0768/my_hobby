@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../common/models/business_model.dart';
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_state.dart';
+import '../../bloc/auth/auth_event.dart';
 import 'full_screen_image_viewer.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
@@ -252,9 +256,25 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           icon: const Icon(Icons.share_rounded),
           onPressed: () {},
         ),
-        IconButton(
-          icon: const Icon(Icons.favorite_border_rounded),
-          onPressed: () {},
+        BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            final isFavorite = state.user?.favorites.contains(widget.business.id) ?? false;
+            return IconButton(
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
+                color: isFavorite ? Colors.red : Colors.white,
+              ),
+              onPressed: () {
+                if (state.user == null || state.isGuest) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please login to favorite businesses')),
+                  );
+                  return;
+                }
+                context.read<AuthBloc>().add(AuthToggleFavoriteRequested(widget.business.id));
+              },
+            );
+          },
         ),
       ],
     );

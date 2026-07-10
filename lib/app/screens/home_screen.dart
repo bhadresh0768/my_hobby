@@ -73,17 +73,28 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildSearchBar(l10n),
             _buildCategoryFilters(),
             Expanded(
-              child: BlocBuilder<BusinessBloc, BusinessState>(
-                builder: (context, state) {
-                  if (state.status == BusinessStatus.loading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (state.businesses.isEmpty) {
-                    return const Center(child: Text('No businesses found.'));
-                  }
-                  return _isGridView
-                      ? _buildBusinessGrid(state.businesses)
-                      : _buildBusinessList(state.businesses);
+              child: BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, authState) {
+                  final currentUserId = authState.user?.uid;
+                  return BlocBuilder<BusinessBloc, BusinessState>(
+                    builder: (context, state) {
+                      if (state.status == BusinessStatus.loading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      // Filter out businesses owned by the current user
+                      final filteredBusinesses = state.businesses
+                          .where((business) => business.ownerId != currentUserId)
+                          .toList();
+
+                      if (filteredBusinesses.isEmpty) {
+                        return const Center(child: Text('No businesses found.'));
+                      }
+                      return _isGridView
+                          ? _buildBusinessGrid(filteredBusinesses)
+                          : _buildBusinessList(filteredBusinesses);
+                    },
+                  );
                 },
               ),
             ),

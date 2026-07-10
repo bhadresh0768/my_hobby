@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/business_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../app/bloc/auth/auth_bloc.dart';
+import '../../app/bloc/auth/auth_state.dart';
+import '../../app/bloc/auth/auth_event.dart';
 
 class BusinessCard extends StatelessWidget {
   final Business business;
@@ -64,6 +68,27 @@ class BusinessCard extends StatelessWidget {
                       ),
                       if (business.isVerified)
                         const Icon(Icons.verified, color: Colors.blue, size: 20),
+                      const Spacer(),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          final isFavorite = state.user?.favorites.contains(business.id) ?? false;
+                          return IconButton(
+                            icon: Icon(
+                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: isFavorite ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              if (state.user == null || state.isGuest) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please login to favorite businesses')),
+                                );
+                                return;
+                              }
+                              context.read<AuthBloc>().add(AuthToggleFavoriteRequested(business.id));
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),

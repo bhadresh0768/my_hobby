@@ -18,6 +18,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     on<BusinessFetchMyBusinessesRequested>(_onFetchMyBusinessesRequested);
     on<BusinessDeleteRequested>(_onDeleteRequested);
     on<BusinessUpdated>(_onUpdated);
+    on<BusinessErrorOccurred>(_onErrorOccurred);
   }
 
   Future<void> _onRegisterRequested(
@@ -44,37 +45,28 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
 
   Future<void> _onFetchRequested(BusinessFetchRequested event, Emitter<BusinessState> emit) async {
     emit(state.copyWith(status: BusinessStatus.loading));
-    _businessesSubscription?.cancel();
     
-    // Use restartable or switchMap logic manually for the subscription
-    await emit.forEach<List<Business>>(
-      _businessRepository.getBusinesses(category: event.category),
-      onData: (businesses) => state.copyWith(
-        status: BusinessStatus.success,
-        businesses: businesses,
-      ),
-      onError: (error, stackTrace) => state.copyWith(
-        status: BusinessStatus.error,
-        errorMessage: error.toString(),
-      ),
+    await _businessesSubscription?.cancel();
+    
+    final stream = _businessRepository.getBusinesses(category: event.category);
+    
+    _businessesSubscription = stream.listen(
+      (businesses) => add(BusinessUpdated(businesses)),
+      onError: (error) => add(BusinessErrorOccurred(error.toString())),
     );
   }
 
   Future<void> _onFetchMyBusinessesRequested(
       BusinessFetchMyBusinessesRequested event, Emitter<BusinessState> emit) async {
     emit(state.copyWith(status: BusinessStatus.loading));
-    _businessesSubscription?.cancel();
     
-    await emit.forEach<List<Business>>(
-      _businessRepository.getMyBusinesses(event.ownerId),
-      onData: (businesses) => state.copyWith(
-        status: BusinessStatus.success,
-        businesses: businesses,
-      ),
-      onError: (error, stackTrace) => state.copyWith(
-        status: BusinessStatus.error,
-        errorMessage: error.toString(),
-      ),
+    await _businessesSubscription?.cancel();
+    
+    final stream = _businessRepository.getMyBusinesses(event.ownerId);
+    
+    _businessesSubscription = stream.listen(
+      (businesses) => add(BusinessUpdated(businesses)),
+      onError: (error) => add(BusinessErrorOccurred(error.toString())),
     );
   }
 
@@ -90,6 +82,10 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
 
   void _onUpdated(BusinessUpdated event, Emitter<BusinessState> emit) {
     emit(state.copyWith(status: BusinessStatus.success, businesses: event.businesses));
+  }
+
+  void _onErrorOccurred(BusinessErrorOccurred event, Emitter<BusinessState> emit) {
+    emit(state.copyWith(status: BusinessStatus.error, errorMessage: event.errorMessage));
   }
 
   @override

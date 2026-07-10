@@ -5,6 +5,7 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/auth/auth_event.dart';
 import 'home_screen.dart';
+import 'favorites_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/edit_profile_screen.dart';
 import 'business/my_businesses_screen.dart';
@@ -21,11 +22,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   List<Widget> get _widgetOptions => <Widget>[
     const HomeScreen(),
-    const _PlaceholderScreen(
-      title: 'Favorites',
-      icon: Icons.favorite,
-      message: 'Sign in to see your favorite shops!',
-    ),
+    const FavoritesScreen(),
     const _PlaceholderScreen(
       title: 'My Offers',
       icon: Icons.local_offer,
@@ -42,9 +39,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        // 1. Initial Loading (App Start)
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) => current.status == AuthStatus.error,
+      listener: (context, state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          // 1. Initial Loading (App Start)
         if (state.status == AuthStatus.initial || 
            (state.status == AuthStatus.loading && state.user == null && state.phoneNumber == null)) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -97,8 +106,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         );
       },
-    );
-  }
+    ),
+  );
+}
 }
 
 class _ProfileWrapper extends StatelessWidget {
