@@ -7,8 +7,10 @@ import 'package:uuid/uuid.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../common/models/business_model.dart';
 import '../../../common/utils/validators.dart';
+import '../../../common/utils/location_helper.dart';
 import '../../../core/app_constants.dart';
 import 'package:csc_picker_plus/csc_picker_plus.dart';
+import 'package:map_location_picker/map_location_picker.dart' hide BusinessStatus;
 import '../../../core/repositories/business_repository.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/business/business_bloc.dart';
@@ -45,6 +47,8 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
   String _selectedCountry = 'India';
   String? _selectedState = '';
   String? _selectedCity = '';
+  double? _latitude;
+  double? _longitude;
   final List<String> _imageUrls = [];
   final List<File> _newImages = [];
 
@@ -59,7 +63,10 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
       _zipcodeController.text = widget.business!.zipcode;
       _countryController.text = widget.business!.country;
       _selectedCountry = widget.business!.country;
+      _selectedState = widget.business!.state;
       _selectedCity = widget.business!.city;
+      _latitude = widget.business!.latitude;
+      _longitude = widget.business!.longitude;
       _phoneController.text = widget.business!.phoneNumber;
       _whatsappController.text = widget.business!.whatsappNumber;
       _emailController.text = widget.business!.email;
@@ -72,6 +79,83 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
       }
       _imageUrls.addAll(widget.business!.imageUrls);
     }
+  }
+
+  void _openMapPicker() async {
+    // Check permission before opening map
+    final hasPermission = await LocationHelper.handleLocationPermission(context);
+    if (!hasPermission) return;
+
+    // Note: In a real app, you'd use a secure way to store/retrieve the API key
+    const String googleMapsApiKey = "AIzaSyC4k-0Ia4hIxnBwV7dvt2lr-7nQgbDQ33U";
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapLocationPicker(
+          config: MapLocationPickerConfig(
+            apiKey: googleMapsApiKey,
+            initialPosition: _latitude != null && _longitude != null
+                ? LatLng(_latitude!, _longitude!)
+                : const LatLng(28.6139, 77.2090), // Default to New Delhi
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            onNext: (GeocodingResult? result) {
+              if (result != null && result.geometry != null) {
+                setState(() {
+                  _latitude = result.geometry!.location.lat;
+                  _longitude = result.geometry!.location.lng;
+                  
+                  // Update address field with the selection
+                  if (result.formattedAddress != null) {
+                    _addressController.text = result.formattedAddress!;
+                  }
+
+                  // Auto-fill other fields from address components if available
+                  if (result.addressComponents != null) {
+                    String? foundCountry;
+                    String? foundState;
+                    String? foundCity;
+                    String? foundZip;
+
+                    for (var component in result.addressComponents!) {
+                      final types = component.types;
+                      if (types == null) continue;
+                      
+                      if (types.contains('postal_code')) {
+                        foundZip = component.longName;
+                      } else if (types.contains('locality') || types.contains('administrative_area_level_2')) {
+                        foundCity = component.longName;
+                      } else if (types.contains('administrative_area_level_1')) {
+                        foundState = component.longName;
+                      } else if (types.contains('country')) {
+                        foundCountry = component.longName;
+                      }
+                    }
+
+                    if (foundCountry != null) {
+                      _selectedCountry = foundCountry;
+                      _countryController.text = foundCountry;
+                    }
+                    if (foundState != null) {
+                      _selectedState = foundState;
+                    }
+                    if (foundCity != null) {
+                      _selectedCity = foundCity;
+                      _cityController.text = foundCity;
+                    }
+                    if (foundZip != null) {
+                      _zipcodeController.text = foundZip;
+                    }
+                  }
+                });
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -186,6 +270,38 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                   if (_currentStep > 0) {
                     setState(() => _currentStep -= 1);
                   }
+                },
+                controlsBuilder: (context, details) {
+                  final bool isLastStep = _currentStep == 3;
+                  final String actionText = isEdit ? 'Update' : 'Register';
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _isUploading ? null : details.onStepContinue,
+                          child: _isUploading && isLastStep
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(isLastStep ? actionText : 'Continue'),
+                        ),
+                        if (_currentStep > 0) ...[
+                          const SizedBox(width: 12),
+                          TextButton(
+                            onPressed: _isUploading ? null : details.onStepCancel,
+                            child: const Text('Back'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
                 },
                 steps: [
                   Step(
@@ -321,6 +437,27 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                     isActive: _currentStep >= 2,
                     content: Column(
                       children: [
+                        ElevatedButton.icon(
+                          onPressed: _openMapPicker,
+                          icon: const Icon(Icons.map),
+                          label: Text(_latitude != null && _longitude != null
+                              ? 'Location Pinned (Update)'
+                              : 'Pin Business on Map (Mandatory)'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _latitude != null && _longitude != null
+                                ? Colors.green[100]
+                                : null,
+                          ),
+                        ),
+                        if (_latitude != null && _longitude != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Coordinates: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ),
+                        const SizedBox(height: 16),
                         TextFormField(
                           controller: _addressController,
                           decoration: const InputDecoration(labelText: 'Full Address'),
@@ -409,6 +546,14 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
     if (_isUploading) return;
 
     if (_formKey.currentState!.validate()) {
+      if (_latitude == null || _longitude == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please pin your business location on the map')),
+        );
+        setState(() => _currentStep = 2); // Jump to Location step
+        return;
+      }
+      
       if (_selectedCountry.isEmpty || _selectedCity == null || _selectedCity!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select Country and City')),
@@ -443,14 +588,15 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
           description: _descriptionController.text.trim(),
           location: _addressController.text.trim(),
           city: _cityController.text.trim(),
+          state: _selectedState ?? '',
           zipcode: _zipcodeController.text.trim(),
           country: _countryController.text.trim(),
           phoneNumber: _phoneController.text.trim(),
           whatsappNumber: _whatsappController.text.trim(),
           email: _emailController.text.trim(),
           imageUrls: [..._imageUrls, ...uploadedUrls],
-          latitude: widget.business?.latitude ?? 0.0,
-          longitude: widget.business?.longitude ?? 0.0,
+          latitude: _latitude,
+          longitude: _longitude,
           isVerified: widget.business?.isVerified ?? false,
           averageRating: widget.business?.averageRating ?? 0.0,
           totalReviews: widget.business?.totalReviews ?? 0,

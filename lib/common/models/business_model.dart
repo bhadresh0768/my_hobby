@@ -8,6 +8,7 @@ class Business {
   final String description;
   final String location;
   final String city;
+  final String state;
   final String zipcode;
   final String country;
   final double? latitude;
@@ -31,6 +32,7 @@ class Business {
     required this.description,
     required this.location,
     required this.city,
+    required this.state,
     required this.zipcode,
     required this.country,
     this.latitude,
@@ -57,6 +59,7 @@ class Business {
       description: data['description'] ?? '',
       location: data['location'] ?? '',
       city: data['city'] ?? '',
+      state: data['state'] ?? '',
       zipcode: data['zipcode'] ?? '',
       country: data['country'] ?? '',
       latitude: (data['latitude'] as num?)?.toDouble(),
@@ -82,6 +85,7 @@ class Business {
       'description': description,
       'location': location,
       'city': city,
+      'state': state,
       'zipcode': zipcode,
       'country': country,
       'latitude': latitude,
