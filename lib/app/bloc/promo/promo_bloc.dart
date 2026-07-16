@@ -28,6 +28,7 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
     on<PromoClaimsLoadRequested>(_onPromoClaimsLoadRequested);
     on<PromoCancelRequested>(_onPromoCancelRequested);
     on<PromoRedeemRequested>(_onPromoRedeemRequested);
+    on<_PromoErrorOccurred>(_onPromoErrorOccurred);
     on<_PromoListUpdated>(_onPromoListUpdated);
     on<_OfferListUpdated>(_onOfferListUpdated);
     on<_UserClaimsUpdated>(_onUserClaimsUpdated);
@@ -58,6 +59,10 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
     emit(state.copyWith(promoClaims: event.claims, status: PromoStatus.success));
   }
 
+  void _onPromoErrorOccurred(_PromoErrorOccurred event, Emitter<PromoState> emit) {
+    emit(state.copyWith(status: PromoStatus.failure, error: event.error));
+  }
+
   Future<void> _onLoadForBusinessRequested(
     PromoLoadForBusinessRequested event,
     Emitter<PromoState> emit,
@@ -79,9 +84,16 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
   Future<void> _onUserClaimsLoadRequested(UserClaimsLoadRequested event, Emitter<PromoState> emit) async {
     emit(state.copyWith(status: PromoStatus.loading, claimSuccess: false, cancelSuccess: false));
     await _userClaimsSubscription?.cancel();
-    _userClaimsSubscription = _promoRepository.getUserClaims(event.userId).listen((claims) {
-      add(_UserClaimsUpdated(claims));
-    });
+    _userClaimsSubscription = _promoRepository
+        .getUserClaims(event.userId, status: event.status)
+        .listen(
+      (claims) {
+        add(_UserClaimsUpdated(claims));
+      },
+      onError: (e) {
+        add(_PromoErrorOccurred(e.toString()));
+      },
+    );
   }
 
   Future<void> _onPromoClaimsLoadRequested(PromoClaimsLoadRequested event, Emitter<PromoState> emit) async {
@@ -282,4 +294,9 @@ class _UserClaimsUpdated extends PromoEvent {
 class _PromoClaimsUpdated extends PromoEvent {
   final List<Map<String, dynamic>> claims;
   _PromoClaimsUpdated(this.claims);
+}
+
+class _PromoErrorOccurred extends PromoEvent {
+  final String error;
+  _PromoErrorOccurred(this.error);
 }

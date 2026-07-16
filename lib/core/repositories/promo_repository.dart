@@ -122,32 +122,44 @@ class PromoRepository {
     });
   }
 
-  Stream<List<Map<String, dynamic>>> getUserClaims(String userId) {
-    return _firestore
+  Stream<List<Map<String, dynamic>>> getUserClaims(String userId, {String? status}) {
+    Query query = _firestore
         .collection(AppConstants.claimsCollection)
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .asyncMap((snapshot) async {
-      List<Map<String, dynamic>> results = [];
+        .where('userId', isEqualTo: userId);
+
+    if (status != null && status != 'All') {
+      query = query.where('status', isEqualTo: status.toLowerCase());
+    }
+
+    return query.snapshots().asyncMap((snapshot) async {
+      final List<Map<String, dynamic>> results = [];
+      
       for (var doc in snapshot.docs) {
-        final data = doc.data();
+        final data = doc.data() as Map<String, dynamic>;
         final promoId = data['promoId'];
-        final promoDoc = await _firestore.collection(AppConstants.promoCodesCollection).doc(promoId).get();
+        if (promoId == null) continue;
+
+        final promoDoc = await _firestore
+            .collection(AppConstants.promoCodesCollection)
+            .doc(promoId)
+            .get();
+
         if (promoDoc.exists) {
-          final promo = PromoCode.fromFirestore(promoDoc);
           results.add({
             ...data,
-            'promo': promo,
+            'promo': PromoCode.fromFirestore(promoDoc),
           });
         }
       }
-      // Sort manually in memory DESC by claimedAt
+
+      // Sort DESC by claimedAt
       results.sort((a, b) {
         final aTime = a['claimedAt'] as Timestamp?;
         final bTime = b['claimedAt'] as Timestamp?;
         if (aTime == null || bTime == null) return 0;
         return bTime.compareTo(aTime);
       });
+
       return results;
     });
   }

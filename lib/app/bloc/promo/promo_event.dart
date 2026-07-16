@@ -36,7 +36,8 @@ class PromoClaimRequested extends PromoEvent {
 
 class UserClaimsLoadRequested extends PromoEvent {
   final String userId;
-  UserClaimsLoadRequested(this.userId);
+  final String? status;
+  UserClaimsLoadRequested(this.userId, {this.status});
 }
 
 class PromoClaimsLoadRequested extends PromoEvent {
