@@ -74,3 +74,8 @@ class OfferDeleteRequested extends PromoEvent {
   final String offerId;
   OfferDeleteRequested(this.offerId);
 }
+
+class PromoImageDeleteRequested extends PromoEvent {
+  final String imageUrl;
+  PromoImageDeleteRequested(this.imageUrl);
+}

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'promo_event.dart';
 import 'promo_state.dart';
@@ -28,6 +29,7 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
     on<PromoClaimsLoadRequested>(_onPromoClaimsLoadRequested);
     on<PromoCancelRequested>(_onPromoCancelRequested);
     on<PromoRedeemRequested>(_onPromoRedeemRequested);
+    on<PromoImageDeleteRequested>(_onImageDeleteRequested);
     on<_PromoErrorOccurred>(_onPromoErrorOccurred);
     on<_PromoListUpdated>(_onPromoListUpdated);
     on<_OfferListUpdated>(_onOfferListUpdated);
@@ -263,6 +265,14 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
       await _promoRepository.redeemPromoCode(event.userId, event.promoId, event.verificationCode);
     } catch (e) {
       emit(state.copyWith(status: PromoStatus.failure, error: _cleanError(e)));
+    }
+  }
+
+  Future<void> _onImageDeleteRequested(PromoImageDeleteRequested event, Emitter<PromoState> emit) async {
+    try {
+      await _promoRepository.deleteImage(event.imageUrl);
+    } catch (e) {
+      debugPrint('Error deleting image via Bloc: $e');
     }
   }
 

@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../common/models/promo_model.dart';
@@ -67,10 +69,29 @@ class _AddEditPromoScreenState extends State<AddEditPromoScreen> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      setState(() {
-        _newImages.add(File(pickedFile.path));
-      });
+      final compressedFile = await _compressImage(File(pickedFile.path));
+      if (compressedFile != null) {
+        setState(() {
+          _newImages.add(compressedFile);
+        });
+      }
     }
+  }
+
+  Future<File?> _compressImage(File file) async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    final targetPath = "$path/${DateTime.now().millisecondsSinceEpoch}.jpg";
+
+    final result = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      quality: 80,
+      minWidth: 1024,
+      minHeight: 1024,
+    );
+
+    return result != null ? File(result.path) : null;
   }
 
   void _save() {
@@ -126,6 +147,7 @@ class _AddEditPromoScreenState extends State<AddEditPromoScreen> {
               children: [
                 TextFormField(
                   controller: _codeController,
+                  textCapitalization: TextCapitalization.characters,
                   decoration: const InputDecoration(labelText: 'Promo Code (e.g. SAVE50)', border: OutlineInputBorder()),
                   validator: (val) => val!.isEmpty ? 'Enter code' : null,
                 ),
@@ -253,7 +275,10 @@ class _AddEditPromoScreenState extends State<AddEditPromoScreen> {
                     Positioned(
                       right: 0,
                       child: GestureDetector(
-                        onTap: () => setState(() => _existingImageUrls.remove(url)),
+                        onTap: () {
+                          context.read<PromoBloc>().add(PromoImageDeleteRequested(url));
+                          setState(() => _existingImageUrls.remove(url));
+                        },
                         child: const CircleAvatar(radius: 10, backgroundColor: Colors.red, child: Icon(Icons.close, size: 12, color: Colors.white)),
                       ),
                     ),

@@ -28,6 +28,14 @@ class PromoRepository {
   }
 
   Future<void> deletePromoCode(String id) async {
+    // Delete images from storage first
+    final doc = await _firestore.collection(AppConstants.promoCodesCollection).doc(id).get();
+    if (doc.exists) {
+      final imageUrls = List<String>.from(doc.data()?['imageUrls'] ?? []);
+      for (var url in imageUrls) {
+        await deleteImage(url);
+      }
+    }
     await _firestore.collection(AppConstants.promoCodesCollection).doc(id).delete();
   }
 
@@ -190,6 +198,14 @@ class PromoRepository {
   }
 
   Future<void> deleteOffer(String id) async {
+    // Delete images from storage first
+    final doc = await _firestore.collection(AppConstants.offersCollection).doc(id).get();
+    if (doc.exists) {
+      final imageUrls = List<String>.from(doc.data()?['imageUrls'] ?? []);
+      for (var url in imageUrls) {
+        await deleteImage(url);
+      }
+    }
     await _firestore.collection(AppConstants.offersCollection).doc(id).delete();
   }
 
@@ -203,6 +219,15 @@ class PromoRepository {
   }
 
   // --- Image Upload ---
+
+  Future<void> deleteImage(String imageUrl) async {
+    try {
+      final ref = _storage.refFromURL(imageUrl);
+      await ref.delete();
+    } catch (e) {
+      debugPrint('Error deleting image: $e');
+    }
+  }
 
   Future<List<String>> uploadImages(String businessId, String type, List<File> images) async {
     List<String> urls = [];
