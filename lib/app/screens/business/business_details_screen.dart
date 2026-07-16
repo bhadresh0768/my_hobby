@@ -3,9 +3,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../common/models/business_model.dart';
+import '../../../common/models/promo_model.dart';
+import '../../../common/models/offer_model.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/auth/auth_event.dart';
+import '../../bloc/promo/promo_bloc.dart';
+import '../../bloc/promo/promo_event.dart';
+import '../../bloc/promo/promo_state.dart';
 import 'full_screen_image_viewer.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
@@ -20,6 +25,12 @@ class BusinessDetailsScreen extends StatefulWidget {
 class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<PromoBloc>().add(PromoLoadForBusinessRequested(widget.business.id));
+  }
 
   @override
   void dispose() {
@@ -56,114 +67,143 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildQuickActions(),
-                  const SizedBox(height: 32),
-                  _buildSectionTitle(context, 'About the Business'),
-                  const SizedBox(height: 12),
-                  Text(
-                    widget.business.description,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                  ),
-                  const SizedBox(height: 32),
-                  _buildSectionTitle(context, 'Contact Information'),
-                  const SizedBox(height: 16),
-                  _buildContactTile(
-                    context,
-                    icon: Icons.phone_rounded,
-                    title: 'Phone',
-                    subtitle: widget.business.phoneNumber,
-                    onTap: () => _launchUrl('tel:${widget.business.phoneNumber}'),
-                  ),
-                  _buildContactTile(
-                    context,
-                    icon: Icons.chat_rounded,
-                    title: 'WhatsApp',
-                    subtitle: widget.business.whatsappNumber,
-                    onTap: () => _launchUrl('https://wa.me/${widget.business.whatsappNumber.replaceAll('+', '')}'),
-                    color: Colors.green,
-                  ),
-                  _buildContactTile(
-                    context,
-                    icon: Icons.email_rounded,
-                    title: 'Email',
-                    subtitle: widget.business.email,
-                    onTap: () => _launchUrl('mailto:${widget.business.email}'),
-                    color: Colors.redAccent,
-                  ),
-                  const SizedBox(height: 32),
-                  _buildSectionTitle(context, 'Location'),
-                  const SizedBox(height: 16),
-                  Card(
-                    elevation: 0,
-                    color: Colors.grey[50],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Colors.grey[200]!),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.location_on_rounded, color: Theme.of(context).primaryColor),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.business.location,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '${widget.business.city}, ${widget.business.country} - ${widget.business.zipcode}',
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _openMaps,
-                      icon: const Icon(Icons.directions_rounded),
-                      label: const Text('Get Directions'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
-              ),
+    return BlocListener<PromoBloc, PromoState>(
+      listenWhen: (previous, current) => current.claimSuccess,
+      listener: (context, state) {
+        if (state.claimSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Promo claimed successfully! View it in the Offers tab.'),
+              backgroundColor: Colors.green,
             ),
+          );
+        }
+      },
+      child: BlocListener<PromoBloc, PromoState>(
+        listenWhen: (previous, current) => 
+            previous.status == PromoStatus.claiming && current.status == PromoStatus.failure,
+        listener: (context, state) {
+          if (state.status == PromoStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error ?? 'Action failed'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              _buildAppBar(context),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildQuickActions(),
+                      const SizedBox(height: 32),
+                      _buildPromosAndOffers(),
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(context, 'About the Business'),
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.business.description,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                            ),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(context, 'Contact Information'),
+                      const SizedBox(height: 16),
+                      _buildContactTile(
+                        context,
+                        icon: Icons.phone_rounded,
+                        title: 'Phone',
+                        subtitle: widget.business.phoneNumber,
+                        onTap: () => _launchUrl('tel:${widget.business.phoneNumber}'),
+                      ),
+                      _buildContactTile(
+                        context,
+                        icon: Icons.chat_rounded,
+                        title: 'WhatsApp',
+                        subtitle: widget.business.whatsappNumber,
+                        onTap: () => _launchUrl('https://wa.me/${widget.business.whatsappNumber.replaceAll('+', '')}'),
+                        color: Colors.green,
+                      ),
+                      _buildContactTile(
+                        context,
+                        icon: Icons.email_rounded,
+                        title: 'Email',
+                        subtitle: widget.business.email,
+                        onTap: () => _launchUrl('mailto:${widget.business.email}'),
+                        color: Colors.redAccent,
+                      ),
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(context, 'Location'),
+                      const SizedBox(height: 16),
+                      Card(
+                        elevation: 0,
+                        color: Colors.grey[50],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey[200]!),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.location_on_rounded, color: Theme.of(context).primaryColor),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.business.location,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      '${widget.business.city}, ${widget.business.country} - ${widget.business.zipcode}',
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _openMaps,
+                          icon: const Icon(Icons.directions_rounded),
+                          label: const Text('Get Directions'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -307,6 +347,154 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           const SizedBox(height: 8),
           Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPromosAndOffers() {
+    return BlocBuilder<PromoBloc, PromoState>(
+      builder: (context, state) {
+        final activePromos = state.promos.where((p) => p.isAvailable).toList();
+        final activeOffers = state.offers.where((o) => o.isAvailable).toList();
+
+        if (activePromos.isEmpty && activeOffers.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(context, 'Promos & Offers'),
+            const SizedBox(height: 16),
+            if (activeOffers.isNotEmpty) ...[
+              SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: activeOffers.length,
+                  itemBuilder: (context, index) {
+                    final offer = activeOffers[index];
+                    return _buildOfferCard(offer);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (activePromos.isNotEmpty) ...[
+              ...activePromos.map((promo) => _buildPromoCard(promo)),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildOfferCard(Offer offer) {
+    return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (offer.imageUrls.isNotEmpty)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: CachedNetworkImage(
+                imageUrl: offer.imageUrls.first,
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(offer.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(offer.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey[700])),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPromoCard(PromoCode promo) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.blue.withValues(alpha: 0.3))),
+      elevation: 0,
+      color: Colors.blue.withValues(alpha: 0.05),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
+                  child: Text(promo.code, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+                Text('Remaining: ${promo.remainingUsage}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(promo.description, style: const TextStyle(fontSize: 15)),
+            if (promo.termsAndConditions.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('* ${promo.termsAndConditions}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            ],
+            const SizedBox(height: 16),
+            BlocBuilder<PromoBloc, PromoState>(
+              builder: (context, promoState) {
+                return BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, authState) {
+                    final isClaimingThis = promoState.status == PromoStatus.claiming && 
+                                          promoState.claimingPromoId == promo.id;
+
+                    return SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isClaimingThis
+                            ? null
+                            : () {
+                                if (authState.user == null || authState.isGuest) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please login to claim promo codes')));
+                                  return;
+                                }
+                                context.read<PromoBloc>().add(
+                                      PromoClaimRequested(
+                                        authState.user!.uid,
+                                        promo.id,
+                                        userName: authState.user!.displayName,
+                                        userPhone: authState.user!.phoneNumber,
+                                      ),
+                                    );
+                              },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                        child: isClaimingThis
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Text('Claim Now'),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

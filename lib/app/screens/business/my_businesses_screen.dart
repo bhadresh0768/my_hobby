@@ -8,6 +8,7 @@ import '../../../common/models/business_model.dart';
 import '../../../common/widgets/business_card.dart';
 import 'business_registration_screen.dart';
 import 'business_details_screen.dart';
+import 'manage_promos_offers_screen.dart';
 
 class MyBusinessesScreen extends StatefulWidget {
   const MyBusinessesScreen({super.key});
@@ -137,6 +138,20 @@ class _MyBusinessesScreenState extends State<MyBusinessesScreen> {
                     right: 8,
                     child: Row(
                       children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: IconButton(
+                            icon: const Icon(Icons.local_offer, color: Colors.orange),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => ManagePromosOffersScreen(business: business),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         CircleAvatar(
                           backgroundColor: Colors.white,
                           child: IconButton(

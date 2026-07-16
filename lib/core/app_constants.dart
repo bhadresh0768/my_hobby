@@ -8,6 +8,7 @@ class AppConstants {
   static const String reviewsCollection = 'reviews';
   static const String usersCollection = 'users';
   static const String promoCodesCollection = 'promo_codes';
+  static const String claimsCollection = 'claims';
 
   // Categories
   static const List<String> businessCategories = [

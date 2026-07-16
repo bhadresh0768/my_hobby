@@ -9,6 +9,7 @@ import 'favorites_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/edit_profile_screen.dart';
 import 'business/my_businesses_screen.dart';
+import 'user/my_claims_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -23,11 +24,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   List<Widget> get _widgetOptions => <Widget>[
     const HomeScreen(),
     const FavoritesScreen(),
-    const _PlaceholderScreen(
-      title: 'My Offers',
-      icon: Icons.local_offer,
-      message: 'Sign in to view your claimed offers!',
-    ),
+    const MyClaimsScreen(),
     const _ProfileWrapper(),
   ];
 

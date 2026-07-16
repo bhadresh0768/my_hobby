@@ -9,7 +9,10 @@ class PromoCode {
   final String discountType; // 'percentage' or 'fixed'
   final int maxUsage;
   final int currentUsage;
-  final DateTime? expiryDate;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final List<String> imageUrls;
+  final String termsAndConditions;
   final bool isPublic;
   final bool isActive;
 
@@ -22,10 +25,18 @@ class PromoCode {
     required this.discountType,
     required this.maxUsage,
     this.currentUsage = 0,
-    this.expiryDate,
+    this.startDate,
+    this.endDate,
+    this.imageUrls = const [],
+    this.termsAndConditions = '',
     this.isPublic = true,
     this.isActive = true,
   });
+
+  int get remainingUsage => maxUsage - currentUsage;
+  bool get isExpired => endDate != null && DateTime.now().isAfter(endDate!);
+  bool get isStarted => startDate == null || DateTime.now().isAfter(startDate!);
+  bool get isAvailable => isActive && isStarted && !isExpired && remainingUsage > 0;
 
   factory PromoCode.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
@@ -38,7 +49,10 @@ class PromoCode {
       discountType: data['discountType'] ?? 'percentage',
       maxUsage: data['maxUsage'] ?? 0,
       currentUsage: data['currentUsage'] ?? 0,
-      expiryDate: (data['expiryDate'] as Timestamp?)?.toDate(),
+      startDate: (data['startDate'] as Timestamp?)?.toDate(),
+      endDate: (data['endDate'] as Timestamp?)?.toDate() ?? (data['expiryDate'] as Timestamp?)?.toDate(),
+      imageUrls: List<String>.from(data['imageUrls'] ?? []),
+      termsAndConditions: data['termsAndConditions'] ?? '',
       isPublic: data['isPublic'] ?? true,
       isActive: data['isActive'] ?? true,
     );
@@ -53,7 +67,10 @@ class PromoCode {
       'discountType': discountType,
       'maxUsage': maxUsage,
       'currentUsage': currentUsage,
-      'expiryDate': expiryDate != null ? Timestamp.fromDate(expiryDate!) : null,
+      'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
+      'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
+      'imageUrls': imageUrls,
+      'termsAndConditions': termsAndConditions,
       'isPublic': isPublic,
       'isActive': isActive,
     };

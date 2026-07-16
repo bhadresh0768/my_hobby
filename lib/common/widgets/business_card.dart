@@ -6,6 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../app/bloc/auth/auth_bloc.dart';
 import '../../app/bloc/auth/auth_state.dart';
 import '../../app/bloc/auth/auth_event.dart';
+import '../../app/bloc/promo/promo_bloc.dart';
+import '../../app/bloc/promo/promo_state.dart';
+import '../../app/bloc/promo/promo_event.dart';
+import '../../core/repositories/promo_repository.dart';
 
 class BusinessCard extends StatelessWidget {
   final Business business;
@@ -27,30 +31,85 @@ class BusinessCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: business.imageUrls.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: business.imageUrls.first,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey[200],
-                          child: const Center(child: CircularProgressIndicator()),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.business, size: 50, color: Colors.grey),
-                        ),
-                      )
-                    : Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: Icon(Icons.business, size: 50, color: Colors.grey),
-                        ),
-                      ),
-              ),
+            Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: business.imageUrls.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: business.imageUrls.first,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[200],
+                              child: const Center(child: CircularProgressIndicator()),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.business, size: 50, color: Colors.grey),
+                            ),
+                          )
+                        : Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(Icons.business, size: 50, color: Colors.grey),
+                            ),
+                          ),
+                  ),
+                ),
+                // Offer Indicator
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: StreamBuilder(
+                    stream: context.read<PromoRepository>().getPromosForBusiness(business.id),
+                    builder: (context, promoSnapshot) {
+                      return StreamBuilder(
+                        stream: context.read<PromoRepository>().getOffersForBusiness(business.id),
+                        builder: (context, offerSnapshot) {
+                          final hasPromos = promoSnapshot.hasData && promoSnapshot.data!.any((p) => p.isAvailable);
+                          final hasOffers = offerSnapshot.hasData && offerSnapshot.data!.any((o) => o.isAvailable);
+
+                          if (hasPromos || hasOffers) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.orange,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.local_offer, color: Colors.white, size: 14),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'DEAL ACTIVE',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(16),
