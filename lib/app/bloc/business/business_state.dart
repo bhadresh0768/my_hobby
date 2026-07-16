@@ -1,21 +1,21 @@
 import 'package:equatable/equatable.dart';
 import '../../../common/models/business_model.dart';
 
-enum BusinessStatus { initial, loading, success, submissionSuccess, error }
+enum BusinessBlocStatus { initial, loading, success, submissionSuccess, error }
 
 class BusinessState extends Equatable {
-  final BusinessStatus status;
+  final BusinessBlocStatus status;
   final List<Business> businesses;
   final String? errorMessage;
 
   const BusinessState({
-    this.status = BusinessStatus.initial,
+    this.status = BusinessBlocStatus.initial,
     this.businesses = const [],
     this.errorMessage,
   });
 
   BusinessState copyWith({
-    BusinessStatus? status,
+    BusinessBlocStatus? status,
     List<Business>? businesses,
     String? errorMessage,
   }) {

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+enum BusinessStatus { pending, approved, active, suspended }
+
 class Business {
   final String id;
   final String ownerId;
@@ -24,6 +26,12 @@ class Business {
   final List<String> imageUrls;
   final Map<String, dynamic>? metadata;
 
+  // New Fields
+  final BusinessStatus status;
+  final bool isSubscriptionEnabled;
+  final DateTime? subscriptionStartDate;
+  final DateTime? subscriptionEndDate;
+
   Business({
     required this.id,
     required this.ownerId,
@@ -47,7 +55,31 @@ class Business {
     this.favoriteCount = 0,
     this.imageUrls = const [],
     this.metadata,
+    this.status = BusinessStatus.approved,
+    this.isSubscriptionEnabled = false,
+    this.subscriptionStartDate,
+    this.subscriptionEndDate,
   });
+
+  bool get isPubliclyVisible {
+    // 1. Basic Status Check
+    if (status != BusinessStatus.approved && status != BusinessStatus.active) {
+      return false;
+    }
+
+    // 2. Subscription Logic
+    if (isSubscriptionEnabled) {
+      final now = DateTime.now();
+      if (subscriptionStartDate != null && now.isBefore(subscriptionStartDate!)) {
+        return false;
+      }
+      if (subscriptionEndDate != null && now.isAfter(subscriptionEndDate!)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   factory Business.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
@@ -74,7 +106,25 @@ class Business {
       favoriteCount: data['favoriteCount'] ?? 0,
       imageUrls: List<String>.from(data['imageUrls'] ?? []),
       metadata: data['metadata'],
+      status: _parseStatus(data['status']),
+      isSubscriptionEnabled: data['isSubscriptionEnabled'] ?? false,
+      subscriptionStartDate: (data['subscriptionStartDate'] as Timestamp?)?.toDate(),
+      subscriptionEndDate: (data['subscriptionEndDate'] as Timestamp?)?.toDate(),
     );
+  }
+
+  static BusinessStatus _parseStatus(String? statusStr) {
+    switch (statusStr) {
+      case 'pending':
+        return BusinessStatus.pending;
+      case 'active':
+        return BusinessStatus.active;
+      case 'suspended':
+        return BusinessStatus.suspended;
+      case 'approved':
+      default:
+        return BusinessStatus.approved;
+    }
   }
 
   Map<String, dynamic> toFirestore() {
@@ -100,6 +150,10 @@ class Business {
       'favoriteCount': favoriteCount,
       'imageUrls': imageUrls,
       'metadata': metadata,
+      'status': status.name,
+      'isSubscriptionEnabled': isSubscriptionEnabled,
+      'subscriptionStartDate': subscriptionStartDate != null ? Timestamp.fromDate(subscriptionStartDate!) : null,
+      'subscriptionEndDate': subscriptionEndDate != null ? Timestamp.fromDate(subscriptionEndDate!) : null,
     };
   }
 }

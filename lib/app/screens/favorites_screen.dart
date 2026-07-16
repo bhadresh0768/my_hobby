@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/business/business_bloc.dart';
-import '../bloc/business/business_state.dart';
+import '../bloc/business/business_state.dart' as bloc_state;
 import '../../common/widgets/business_card.dart';
 import 'business/business_details_screen.dart';
 import 'auth/login_screen.dart';
@@ -46,9 +46,9 @@ class FavoritesScreen extends StatelessWidget {
             );
           }
 
-          return BlocBuilder<BusinessBloc, BusinessState>(
+          return BlocBuilder<BusinessBloc, bloc_state.BusinessState>(
             builder: (context, businessState) {
-              if (businessState.status == BusinessStatus.loading) {
+              if (businessState.status == bloc_state.BusinessBlocStatus.loading) {
                 return const Center(child: CircularProgressIndicator());
               }
 
@@ -56,7 +56,7 @@ class FavoritesScreen extends StatelessWidget {
                   .where((b) => favoriteIds.contains(b.id))
                   .toList();
 
-              if (favoriteBusinesses.isEmpty && businessState.status == BusinessStatus.success) {
+              if (favoriteBusinesses.isEmpty && businessState.status == bloc_state.BusinessBlocStatus.success) {
                 // This might happen if businesses aren't loaded yet or IDs are invalid
                 return const Center(child: Text('Loading your favorites...'));
               }

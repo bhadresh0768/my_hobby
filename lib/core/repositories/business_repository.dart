@@ -38,7 +38,10 @@ class BusinessRepository {
     }
 
     return query.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => Business.fromFirestore(doc)).toList();
+      return snapshot.docs
+          .map((doc) => Business.fromFirestore(doc))
+          .where((business) => business.isPubliclyVisible)
+          .toList();
     });
   }
 

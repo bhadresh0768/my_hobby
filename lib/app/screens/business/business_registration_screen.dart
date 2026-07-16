@@ -15,7 +15,7 @@ import '../../../core/repositories/business_repository.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/business/business_bloc.dart';
 import '../../bloc/business/business_event.dart';
-import '../../bloc/business/business_state.dart';
+import '../../bloc/business/business_state.dart' as bloc_state;
 
 class BusinessRegistrationScreen extends StatefulWidget {
   final Business? business;
@@ -240,14 +240,14 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
       appBar: AppBar(title: Text(isEdit ? 'Edit Business' : 'Register Your Business')),
       body: Stack(
         children: [
-          BlocListener<BusinessBloc, BusinessState>(
+          BlocListener<BusinessBloc, bloc_state.BusinessState>(
             listener: (context, state) {
-              if (state.status == BusinessStatus.submissionSuccess) {
+              if (state.status == bloc_state.BusinessBlocStatus.submissionSuccess) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(isEdit ? 'Business Updated Successfully!' : 'Business Registered Successfully!')),
                 );
                 Navigator.of(context).pop();
-              } else if (state.status == BusinessStatus.error) {
+              } else if (state.status == bloc_state.BusinessBlocStatus.error) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(state.errorMessage ?? 'Operation Failed')),
                 );

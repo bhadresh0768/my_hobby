@@ -6,9 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../app/bloc/auth/auth_bloc.dart';
 import '../../app/bloc/auth/auth_state.dart';
 import '../../app/bloc/auth/auth_event.dart';
-import '../../app/bloc/promo/promo_bloc.dart';
-import '../../app/bloc/promo/promo_state.dart';
-import '../../app/bloc/promo/promo_event.dart';
 import '../../core/repositories/promo_repository.dart';
 
 class BusinessCard extends StatelessWidget {

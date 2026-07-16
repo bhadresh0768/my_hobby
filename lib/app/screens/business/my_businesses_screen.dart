@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/business/business_bloc.dart';
 import '../../bloc/business/business_event.dart';
-import '../../bloc/business/business_state.dart';
+import '../../bloc/business/business_state.dart' as bloc_state;
 import '../../../common/models/business_model.dart';
 import '../../../common/widgets/business_card.dart';
 import 'business_registration_screen.dart';
@@ -57,9 +57,9 @@ class _MyBusinessesScreenState extends State<MyBusinessesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('My Businesses')),
-      body: BlocBuilder<BusinessBloc, BusinessState>(
+      body: BlocBuilder<BusinessBloc, bloc_state.BusinessState>(
         builder: (context, state) {
-          if (state.status == BusinessStatus.loading) {
+          if (state.status == bloc_state.BusinessBlocStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
 

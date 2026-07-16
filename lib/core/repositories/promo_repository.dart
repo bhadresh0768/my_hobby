@@ -123,6 +123,7 @@ class PromoRepository {
   }
 
   Stream<List<Map<String, dynamic>>> getUserClaims(String userId, {String? status}) {
+    debugPrint('getUserClaims: Querying for userId: $userId, status: $status');
     Query query = _firestore
         .collection(AppConstants.claimsCollection)
         .where('userId', isEqualTo: userId);
@@ -132,12 +133,16 @@ class PromoRepository {
     }
 
     return query.snapshots().asyncMap((snapshot) async {
+      debugPrint('getUserClaims: Found ${snapshot.docs.length} claim documents');
       final List<Map<String, dynamic>> results = [];
       
       for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
         final promoId = data['promoId'];
-        if (promoId == null) continue;
+        if (promoId == null) {
+          debugPrint('getUserClaims: Claim ${doc.id} has no promoId');
+          continue;
+        }
 
         final promoDoc = await _firestore
             .collection(AppConstants.promoCodesCollection)
@@ -149,8 +154,12 @@ class PromoRepository {
             ...data,
             'promo': PromoCode.fromFirestore(promoDoc),
           });
+        } else {
+          debugPrint('getUserClaims: Promo $promoId not found for claim ${doc.id}');
         }
       }
+
+      debugPrint('getUserClaims: Returning ${results.length} results after promo fetch');
 
       // Sort DESC by claimedAt
       results.sort((a, b) {

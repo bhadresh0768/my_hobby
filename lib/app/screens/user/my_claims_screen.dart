@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../common/models/promo_model.dart';
 import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_state.dart';
 import '../../bloc/promo/promo_bloc.dart';
 import '../../bloc/promo/promo_event.dart';
 import '../../bloc/promo/promo_state.dart';
@@ -38,6 +39,13 @@ class _MyClaimsScreenState extends State<MyClaimsScreen> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (previous, current) => 
+              previous.status != AuthStatus.authenticated && current.status == AuthStatus.authenticated,
+          listener: (context, state) {
+            _loadClaims();
+          },
+        ),
         BlocListener<PromoBloc, PromoState>(
           listenWhen: (previous, current) => !previous.cancelSuccess && current.cancelSuccess,
           listener: (context, state) {

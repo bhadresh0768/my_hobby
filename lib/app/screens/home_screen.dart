@@ -9,7 +9,7 @@ import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/business/business_bloc.dart';
 import '../bloc/business/business_event.dart';
-import '../bloc/business/business_state.dart';
+import '../bloc/business/business_state.dart' as bloc_state;
 import 'business/business_registration_screen.dart';
 import 'business/business_details_screen.dart';
 
@@ -76,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, authState) {
                   final currentUserId = authState.user?.uid;
-                  return BlocBuilder<BusinessBloc, BusinessState>(
+                  return BlocBuilder<BusinessBloc, bloc_state.BusinessState>(
                     builder: (context, state) {
-                      if (state.status == BusinessStatus.loading) {
+                      if (state.status == bloc_state.BusinessBlocStatus.loading) {
                         return const Center(child: CircularProgressIndicator());
                       }
                       
