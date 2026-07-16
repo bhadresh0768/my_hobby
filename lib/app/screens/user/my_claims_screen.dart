@@ -39,7 +39,7 @@ class _MyClaimsScreenState extends State<MyClaimsScreen> {
     return MultiBlocListener(
       listeners: [
         BlocListener<PromoBloc, PromoState>(
-          listenWhen: (previous, current) => current.cancelSuccess,
+          listenWhen: (previous, current) => !previous.cancelSuccess && current.cancelSuccess,
           listener: (context, state) {
             if (state.cancelSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(

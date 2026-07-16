@@ -30,6 +30,10 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
   void initState() {
     super.initState();
     context.read<PromoBloc>().add(PromoLoadForBusinessRequested(widget.business.id));
+    final user = context.read<AuthBloc>().state.user;
+    if (user != null) {
+      context.read<PromoBloc>().add(UserClaimsLoadRequested(user.uid));
+    }
   }
 
   @override
@@ -68,7 +72,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<PromoBloc, PromoState>(
-      listenWhen: (previous, current) => current.claimSuccess,
+      listenWhen: (previous, current) => !previous.claimSuccess && current.claimSuccess,
       listener: (context, state) {
         if (state.claimSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -354,7 +358,8 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
   Widget _buildPromosAndOffers() {
     return BlocBuilder<PromoBloc, PromoState>(
       builder: (context, state) {
-        final activePromos = state.promos.where((p) => p.isAvailable).toList();
+        final claimedPromoIds = state.userClaims.map((c) => c['promoId']).toSet();
+        final activePromos = state.promos.where((p) => p.isAvailable && !claimedPromoIds.contains(p.id)).toList();
         final activeOffers = state.offers.where((o) => o.isAvailable).toList();
 
         if (activePromos.isEmpty && activeOffers.isEmpty) return const SizedBox.shrink();
