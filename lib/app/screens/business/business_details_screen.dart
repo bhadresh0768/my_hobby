@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -371,7 +372,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
             const SizedBox(height: 16),
             if (activeOffers.isNotEmpty) ...[
               SizedBox(
-                height: 180,
+                height: 200,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: activeOffers.length,
@@ -407,20 +408,27 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           if (offer.imageUrls.isNotEmpty)
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: CachedNetworkImage(
-                imageUrl: offer.imageUrls.first,
-                height: 100,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: _SmallImageCarousel(imageUrls: offer.imageUrls, height: 100),
             ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(offer.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(offer.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 Text(offer.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey[700])),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${offer.startDate != null ? DateFormat('MMM dd').format(offer.startDate!) : 'N/A'} - ${offer.endDate != null ? DateFormat('MMM dd, yyyy').format(offer.endDate!) : 'N/A'}',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -434,72 +442,91 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.blue.withValues(alpha: 0.3))),
       elevation: 0,
+      clipBehavior: Clip.antiAlias,
       color: Colors.blue.withValues(alpha: 0.05),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (promo.imageUrls.isNotEmpty)
+            _SmallImageCarousel(imageUrls: promo.imageUrls, height: 150),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
-                  child: Text(promo.code, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
+                      child: Text(promo.code, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                    Text('Remaining: ${promo.remainingUsage}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                  ],
                 ),
-                Text('Remaining: ${promo.remainingUsage}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(promo.description, style: const TextStyle(fontSize: 15)),
-            if (promo.termsAndConditions.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('* ${promo.termsAndConditions}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-            ],
-            const SizedBox(height: 16),
-            BlocBuilder<PromoBloc, PromoState>(
-              builder: (context, promoState) {
-                return BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, authState) {
-                    final isClaimingThis = promoState.status == PromoStatus.claiming && 
-                                          promoState.claimingPromoId == promo.id;
+                const SizedBox(height: 12),
+                Text(promo.description, style: const TextStyle(fontSize: 15)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 14, color: Colors.blue),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Valid: ${promo.startDate != null ? DateFormat('MMM dd').format(promo.startDate!) : 'N/A'} - ${promo.endDate != null ? DateFormat('MMM dd, yyyy').format(promo.endDate!) : 'N/A'}',
+                      style: const TextStyle(fontSize: 13, color: Colors.blue, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+                if (promo.termsAndConditions.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('* ${promo.termsAndConditions}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                ],
+                const SizedBox(height: 16),
+                BlocBuilder<PromoBloc, PromoState>(
+                  builder: (context, promoState) {
+                    return BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, authState) {
+                        final isClaimingThis = promoState.status == PromoStatus.claiming && 
+                                              promoState.claimingPromoId == promo.id;
 
-                    return SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isClaimingThis
-                            ? null
-                            : () {
-                                if (authState.user == null || authState.isGuest) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please login to claim promo codes')));
-                                  return;
-                                }
-                                context.read<PromoBloc>().add(
-                                      PromoClaimRequested(
-                                        authState.user!.uid,
-                                        promo.id,
-                                        userName: authState.user!.displayName,
-                                        userPhone: authState.user!.phoneNumber,
-                                      ),
-                                    );
-                              },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
-                        child: isClaimingThis
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              )
-                            : const Text('Claim Now'),
-                      ),
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: isClaimingThis
+                                ? null
+                                : () {
+                                    if (authState.user == null || authState.isGuest) {
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please login to claim promo codes')));
+                                      return;
+                                    }
+                                    context.read<PromoBloc>().add(
+                                          PromoClaimRequested(
+                                            authState.user!.uid,
+                                            promo.id,
+                                            userName: authState.user!.displayName,
+                                            userPhone: authState.user!.phoneNumber,
+                                          ),
+                                        );
+                                  },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                            child: isClaimingThis
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Text('Claim Now'),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -535,6 +562,83 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
       subtitle: Text(subtitle),
       onTap: onTap,
       trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+    );
+  }
+}
+
+class _SmallImageCarousel extends StatefulWidget {
+  final List<String> imageUrls;
+  final double height;
+
+  const _SmallImageCarousel({required this.imageUrls, required this.height});
+
+  @override
+  State<_SmallImageCarousel> createState() => _SmallImageCarouselState();
+}
+
+class _SmallImageCarouselState extends State<_SmallImageCarousel> {
+  int _currentPage = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FullScreenImageViewer(
+                  imageUrls: widget.imageUrls,
+                  initialIndex: _currentPage,
+                ),
+              ),
+            );
+          },
+          child: SizedBox(
+            height: widget.height,
+            child: PageView.builder(
+              itemCount: widget.imageUrls.length,
+              onPageChanged: (index) => setState(() => _currentPage = index),
+              itemBuilder: (context, index) => CachedNetworkImage(
+                imageUrl: widget.imageUrls[index],
+                height: widget.height,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.image_not_supported),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (widget.imageUrls.length > 1)
+          Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.imageUrls.length,
+                (index) => Container(
+                  width: 6,
+                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

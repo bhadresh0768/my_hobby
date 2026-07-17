@@ -16,6 +16,9 @@ class PromoClaimsListScreen extends StatefulWidget {
 }
 
 class _PromoClaimsListScreenState extends State<PromoClaimsListScreen> {
+  String _selectedStatus = 'All';
+  final List<String> _statuses = ['All', 'Applied', 'Redeemed'];
+
   @override
   void initState() {
     super.initState();
@@ -26,89 +29,141 @@ class _PromoClaimsListScreenState extends State<PromoClaimsListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Claims: ${widget.promo.code}')),
-      body: BlocBuilder<PromoBloc, PromoState>(
-        builder: (context, state) {
-          if (state.status == PromoStatus.loading && state.promoClaims.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state.promoClaims.isEmpty) {
-            return const Center(child: Text('No claims yet.'));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.promoClaims.length,
-            itemBuilder: (context, index) {
-              final claim = state.promoClaims[index];
-              final date = claim['claimedAt'] != null ? (claim['claimedAt'] as dynamic).toDate() : DateTime.now();
-              final status = claim['status'] ?? 'applied';
-              final isRedeemed = status == 'redeemed';
+      body: Column(
+        children: [
+          _buildFilterBar(),
+          Expanded(
+            child: BlocBuilder<PromoBloc, PromoState>(
+              builder: (context, state) {
+                if (state.status == PromoStatus.loading && state.promoClaims.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              return Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isRedeemed ? Colors.green.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
-                      child: Icon(
-                        Icons.person,
-                        color: isRedeemed ? Colors.green : Colors.blue,
-                      ),
-                    ),
-                    title: Text(
-                      claim['userName'] ?? 'Unknown User',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Phone: ${claim['userPhone'] ?? 'N/A'}'),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.verified_user, size: 14, color: Colors.blue),
-                            const SizedBox(width: 4),
-                            const Text('Code: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text(
-                              claim['verificationCode'] ?? 'N/A',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 14),
+                // Filter claims locally based on selected status
+                final filteredClaims = state.promoClaims.where((claim) {
+                  if (_selectedStatus == 'All') return true;
+                  final status = claim['status'] ?? 'applied';
+                  return status == _selectedStatus.toLowerCase();
+                }).toList();
+
+                if (filteredClaims.isEmpty) {
+                  return Center(
+                    child: Text(_selectedStatus == 'All' ? 'No claims yet.' : 'No $_selectedStatus claims found.'),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredClaims.length,
+                  itemBuilder: (context, index) {
+                    final claim = filteredClaims[index];
+                    final date = claim['claimedAt'] != null ? (claim['claimedAt'] as dynamic).toDate() : DateTime.now();
+                    final status = claim['status'] ?? 'applied';
+                    final isRedeemed = status == 'redeemed';
+
+                    return Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: isRedeemed ? Colors.green.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
+                            child: Icon(
+                              Icons.person,
+                              color: isRedeemed ? Colors.green : Colors.blue,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Claimed: ${DateFormat('MMM dd, HH:mm').format(date)}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                    trailing: isRedeemed
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              'Redeemed',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                            ),
-                          )
-                        : ElevatedButton(
-                            onPressed: () => _showVerifyDialog(context, claim),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                            ),
-                            child: const Text('Redeem'),
                           ),
-                  ),
+                          title: Text(
+                            claim['userName'] ?? 'Unknown User',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Phone: ${claim['userPhone'] ?? 'N/A'}'),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.verified_user, size: 14, color: Colors.blue),
+                                  const SizedBox(width: 4),
+                                  const Text('Code: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  Text(
+                                    claim['verificationCode'] ?? 'N/A',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Claimed: ${DateFormat('MMM dd, HH:mm').format(date)}',
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          trailing: isRedeemed
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Redeemed',
+                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                )
+                              : ElevatedButton(
+                                  onPressed: () => _showVerifyDialog(context, claim),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  ),
+                                  child: const Text('Redeem'),
+                                ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: _statuses.map((status) {
+            final isSelected = _selectedStatus == status;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(status),
+                selected: isSelected,
+                checkmarkColor: Colors.white,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() {
+                      _selectedStatus = status;
+                    });
+                  }
+                },
+                selectedColor: Theme.of(context).primaryColor,
+                labelStyle: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
-              );
-            },
-          );
-        },
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

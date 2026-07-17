@@ -9,6 +9,7 @@ import '../../bloc/promo/promo_bloc.dart';
 import '../../bloc/promo/promo_event.dart';
 import '../../bloc/promo/promo_state.dart';
 import '../business/business_details_screen.dart';
+import '../business/full_screen_image_viewer.dart';
 import '../../../core/repositories/business_repository.dart';
 
 class MyClaimsScreen extends StatefulWidget {
@@ -131,13 +132,7 @@ class _MyClaimsScreenState extends State<MyClaimsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (promo.imageUrls.isNotEmpty)
-                                Image.network(
-                                  promo.imageUrls.first,
-                                  height: 150,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                                ),
+                                _PromoImageCarousel(imageUrls: promo.imageUrls),
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
@@ -375,6 +370,75 @@ class _MyClaimsScreenState extends State<MyClaimsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PromoImageCarousel extends StatefulWidget {
+  final List<String> imageUrls;
+
+  const _PromoImageCarousel({required this.imageUrls});
+
+  @override
+  State<_PromoImageCarousel> createState() => _PromoImageCarouselState();
+}
+
+class _PromoImageCarouselState extends State<_PromoImageCarousel> {
+  int _currentPage = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FullScreenImageViewer(
+                  imageUrls: widget.imageUrls,
+                  initialIndex: _currentPage,
+                ),
+              ),
+            );
+          },
+          child: SizedBox(
+            height: 150,
+            child: PageView.builder(
+              itemCount: widget.imageUrls.length,
+              onPageChanged: (index) => setState(() => _currentPage = index),
+              itemBuilder: (context, index) => Image.network(
+                widget.imageUrls[index],
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.error)),
+              ),
+            ),
+          ),
+        ),
+        if (widget.imageUrls.length > 1)
+          Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.imageUrls.length,
+                (index) => Container(
+                  width: 6,
+                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
