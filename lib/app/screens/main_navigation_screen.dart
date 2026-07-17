@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../common/models/user_model.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/auth/auth_event.dart';
@@ -22,12 +23,56 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  List<Widget> get _widgetOptions => <Widget>[
-    const HomeScreen(),
-    const FavoritesScreen(),
-    const MyClaimsScreen(),
-    const _ProfileWrapper(),
-  ];
+  List<Widget> _getWidgetOptions(AuthState state) {
+    final List<Widget> options = [
+      const HomeScreen(),
+      const FavoritesScreen(),
+      const MyClaimsScreen(),
+    ];
+
+    if (state.user?.role == UserRole.businessOwner) {
+      options.add(const MyBusinessesScreen());
+    }
+
+    options.add(const _ProfileWrapper());
+    return options;
+  }
+
+  List<BottomNavigationBarItem> _getNavItems(AuthState state) {
+    final List<BottomNavigationBarItem> items = [
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.home_outlined),
+        activeIcon: Icon(Icons.home),
+        label: 'Home',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.favorite_outline),
+        activeIcon: Icon(Icons.favorite),
+        label: 'Favorites',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.local_offer_outlined),
+        activeIcon: Icon(Icons.local_offer),
+        label: 'Offers',
+      ),
+    ];
+
+    if (state.user?.role == UserRole.businessOwner) {
+      items.add(const BottomNavigationBarItem(
+        icon: Icon(Icons.business_center_outlined),
+        activeIcon: Icon(Icons.business_center),
+        label: 'My Business',
+      ));
+    }
+
+    items.add(const BottomNavigationBarItem(
+      icon: Icon(Icons.person_outline),
+      activeIcon: Icon(Icons.person),
+      label: 'Profile',
+    ));
+
+    return items;
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -52,61 +97,48 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           // 1. Initial Loading (App Start)
-        if (state.status == AuthStatus.initial || 
-           (state.status == AuthStatus.loading && state.user == null && state.phoneNumber == null)) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
+          if (state.status == AuthStatus.initial ||
+              (state.status == AuthStatus.loading && state.user == null && state.phoneNumber == null)) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
 
-        // 2. Login Flow (Unauthenticated or currently authenticating)
-        // We stay on the LoginScreen (which will push OTP screen) during the whole flow.
-        final bool isAuthenticating = state.status == AuthStatus.codeSent || 
-                                     state.status == AuthStatus.loading ||
-                                     state.status == AuthStatus.error;
+          // 2. Login Flow (Unauthenticated or currently authenticating)
+          final bool isAuthenticating = state.status == AuthStatus.codeSent ||
+              state.status == AuthStatus.loading ||
+              state.status == AuthStatus.error;
 
-        if (!state.isGuest && state.user == null && 
-            (state.status == AuthStatus.unauthenticated || isAuthenticating)) {
-          return const LoginScreen();
-        }
+          if (!state.isGuest &&
+              state.user == null &&
+              (state.status == AuthStatus.unauthenticated || isAuthenticating)) {
+            return const LoginScreen();
+          }
 
-        // 3. Main App UI (Authenticated or Guest)
-        return Scaffold(
-          body: Center(
-            child: _widgetOptions.elementAt(_selectedIndex),
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            items: const <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_outline),
-                activeIcon: Icon(Icons.favorite),
-                label: 'Favorites',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.local_offer_outlined),
-                activeIcon: Icon(Icons.local_offer),
-                label: 'Offers',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-            currentIndex: _selectedIndex,
-            selectedItemColor: Theme.of(context).primaryColor,
-            unselectedItemColor: Colors.grey,
-            type: BottomNavigationBarType.fixed,
-            onTap: _onItemTapped,
-          ),
-        );
-      },
-    ),
-  );
-}
+          // 3. Main App UI (Authenticated or Guest)
+          final widgetOptions = _getWidgetOptions(state);
+          final navItems = _getNavItems(state);
+
+          // Safety check for index out of bounds if role changes
+          if (_selectedIndex >= widgetOptions.length) {
+            _selectedIndex = widgetOptions.length - 1;
+          }
+
+          return Scaffold(
+            body: Center(
+              child: widgetOptions.elementAt(_selectedIndex),
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              items: navItems,
+              currentIndex: _selectedIndex,
+              selectedItemColor: Theme.of(context).primaryColor,
+              unselectedItemColor: Colors.grey,
+              type: BottomNavigationBarType.fixed,
+              onTap: _onItemTapped,
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _ProfileWrapper extends StatelessWidget {
@@ -161,17 +193,6 @@ class _ProfileWrapper extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                ListTile(
-                  leading: const Icon(Icons.business_rounded, color: Colors.blue),
-                  title: const Text('My Businesses'),
-                  subtitle: const Text('Manage your registered businesses'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const MyBusinessesScreen()),
-                    );
-                  },
-                ),
                 const Divider(),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
