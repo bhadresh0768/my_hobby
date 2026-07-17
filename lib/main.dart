@@ -10,8 +10,10 @@ import 'app/bloc/auth/auth_bloc.dart';
 import 'core/repositories/auth_repository.dart';
 import 'core/repositories/business_repository.dart';
 import 'core/repositories/promo_repository.dart';
+import 'core/repositories/review_repository.dart';
 import 'app/bloc/business/business_bloc.dart';
 import 'app/bloc/promo/promo_bloc.dart';
+import 'app/bloc/review/review_bloc.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -26,6 +28,7 @@ void main() async {
         Provider<AuthRepository>(create: (_) => AuthRepository()),
         Provider<BusinessRepository>(create: (_) => BusinessRepository()),
         Provider<PromoRepository>(create: (_) => PromoRepository()),
+        Provider<ReviewRepository>(create: (_) => ReviewRepository()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -37,6 +40,9 @@ void main() async {
           ),
           BlocProvider<PromoBloc>(
             create: (context) => PromoBloc(promoRepository: context.read<PromoRepository>()),
+          ),
+          BlocProvider<ReviewBloc>(
+            create: (context) => ReviewBloc(reviewRepository: context.read<ReviewRepository>()),
           ),
         ],
         child: const BusinessDiaryApp(),

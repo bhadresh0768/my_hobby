@@ -12,6 +12,12 @@ import '../../bloc/auth/auth_event.dart';
 import '../../bloc/promo/promo_bloc.dart';
 import '../../bloc/promo/promo_event.dart';
 import '../../bloc/promo/promo_state.dart';
+import '../../bloc/review/review_bloc.dart';
+import '../../bloc/review/review_event.dart';
+import '../../bloc/review/review_state.dart';
+import '../../../../common/models/review_model.dart';
+import 'widgets/add_review_dialog.dart';
+import 'widgets/reply_review_dialog.dart';
 import 'full_screen_image_viewer.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
@@ -35,6 +41,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
     if (user != null) {
       context.read<PromoBloc>().add(UserClaimsLoadRequested(user.uid));
     }
+    context.read<ReviewBloc>().add(ReviewFetchRequested(widget.business.id));
   }
 
   @override
@@ -146,6 +153,8 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                         onTap: () => _launchUrl('mailto:${widget.business.email}'),
                         color: Colors.redAccent,
                       ),
+                      const SizedBox(height: 32),
+                      _buildReviewsSection(),
                       const SizedBox(height: 32),
                       _buildSectionTitle(context, 'Location'),
                       const SizedBox(height: 16),
@@ -528,6 +537,148 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildReviewsSection() {
+    return BlocBuilder<ReviewBloc, ReviewState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSectionTitle(context, 'Reviews (${state.reviews.length})'),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, authState) {
+                    final isOwner = authState.user?.uid == widget.business.ownerId;
+                    if (isOwner || authState.isGuest) return const SizedBox.shrink();
+                    return TextButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AddReviewDialog(business: widget.business),
+                        );
+                      },
+                      icon: const Icon(Icons.add_comment),
+                      label: const Text('Add Review'),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (state.status == ReviewStatus.loading)
+              const Center(child: CircularProgressIndicator())
+            else if (state.reviews.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: Text('No reviews yet. Be the first to review!')),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: state.reviews.length,
+                itemBuilder: (context, index) {
+                  final review = state.reviews[index];
+                  return _buildReviewTile(review);
+                },
+              ),
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildReviewTile(Review review) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        final isOwner = authState.user?.uid == widget.business.ownerId;
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundImage: review.userPhotoUrl != null
+                          ? CachedNetworkImageProvider(review.userPhotoUrl!)
+                          : null,
+                      child: review.userPhotoUrl == null ? const Icon(Icons.person, size: 20) : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(review.userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            DateFormat('MMM dd, yyyy').format(review.createdAt),
+                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          index < review.rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 16,
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(review.comment),
+                if (review.ownerReply != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Owner\'s Reply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(height: 4),
+                        Text(review.ownerReply!, style: const TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ],
+                if (isOwner) ...[
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => ReplyReviewDialog(review: review),
+                        );
+                      },
+                      icon: const Icon(Icons.reply, size: 18),
+                      label: Text(review.ownerReply == null ? 'Reply' : 'Edit Reply'),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

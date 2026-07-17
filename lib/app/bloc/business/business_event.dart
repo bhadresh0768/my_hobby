@@ -27,6 +27,13 @@ class BusinessFetchRequested extends BusinessEvent {
   List<Object?> get props => [category];
 }
 
+class BusinessLoadMoreRequested extends BusinessEvent {
+  final String? category;
+  BusinessLoadMoreRequested({this.category});
+  @override
+  List<Object?> get props => [category];
+}
+
 class BusinessFetchMyBusinessesRequested extends BusinessEvent {
   final String ownerId;
   BusinessFetchMyBusinessesRequested(this.ownerId);

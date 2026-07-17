@@ -8,6 +8,18 @@ import 'package:path/path.dart' as p;
 import '../../common/models/business_model.dart';
 import '../../core/app_constants.dart';
 
+class PaginatedBusinesses {
+  final List<Business> businesses;
+  final DocumentSnapshot? lastDoc;
+  final bool hasMore;
+
+  PaginatedBusinesses({
+    required this.businesses,
+    this.lastDoc,
+    required this.hasMore,
+  });
+}
+
 class BusinessRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -30,19 +42,34 @@ class BusinessRepository {
     return null;
   }
 
-  Stream<List<Business>> getBusinesses({String? category}) {
-    Query query = _firestore.collection(AppConstants.businessesCollection);
+  Future<PaginatedBusinesses> getBusinesses({
+    String? category,
+    DocumentSnapshot? lastDoc,
+    int limit = 10,
+  }) async {
+    Query query = _firestore.collection(AppConstants.businessesCollection)
+        .where('isPubliclyVisible', isEqualTo: true)
+        .orderBy('createdAt', descending: true);
     
     if (category != null && category != 'All') {
       query = query.where('category', isEqualTo: category);
     }
 
-    return query.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Business.fromFirestore(doc))
-          .where((business) => business.isPubliclyVisible)
-          .toList();
-    });
+    if (lastDoc != null) {
+      query = query.startAfterDocument(lastDoc);
+    }
+
+    final snapshot = await query.limit(limit).get();
+    
+    final businesses = snapshot.docs
+        .map((doc) => Business.fromFirestore(doc))
+        .toList();
+
+    return PaginatedBusinesses(
+      businesses: businesses,
+      lastDoc: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+      hasMore: businesses.length == limit,
+    );
   }
 
   Stream<List<Business>> getMyBusinesses(String ownerId) {

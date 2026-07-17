@@ -21,13 +21,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
   String _selectedCategory = 'All';
   bool _isGridView = false;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     context.read<BusinessBloc>().add(BusinessFetchRequested());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      context.read<BusinessBloc>().add(BusinessLoadMoreRequested(category: _selectedCategory));
+    }
   }
 
   @override
@@ -91,8 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         return const Center(child: Text('No businesses found.'));
                       }
                       return _isGridView
-                          ? _buildBusinessGrid(filteredBusinesses)
-                          : _buildBusinessList(filteredBusinesses);
+                          ? _buildBusinessGrid(filteredBusinesses, state)
+                          : _buildBusinessList(filteredBusinesses, state);
                     },
                   );
                 },
@@ -157,41 +171,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBusinessList(List<Business> businesses) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: businesses.length,
-      itemBuilder: (context, index) => BusinessCard(
-        business: businesses[index],
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => BusinessDetailsScreen(business: businesses[index]),
-            ),
-          );
+  Widget _buildBusinessList(List<Business> businesses, bloc_state.BusinessState state) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<BusinessBloc>().add(BusinessFetchRequested(category: _selectedCategory));
+      },
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: businesses.length + (state.isFetchingMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index < businesses.length) {
+            return BusinessCard(
+              business: businesses[index],
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => BusinessDetailsScreen(business: businesses[index]),
+                  ),
+                );
+              },
+            );
+          } else {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
         },
       ),
     );
   }
 
-  Widget _buildBusinessGrid(List<Business> businesses) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: businesses.length,
-      itemBuilder: (context, index) => BusinessCard(
-        business: businesses[index],
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => BusinessDetailsScreen(business: businesses[index]),
-            ),
-          );
+  Widget _buildBusinessGrid(List<Business> businesses, bloc_state.BusinessState state) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<BusinessBloc>().add(BusinessFetchRequested(category: _selectedCategory));
+      },
+      child: GridView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.75,
+        ),
+        itemCount: businesses.length + (state.isFetchingMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index < businesses.length) {
+            return BusinessCard(
+              business: businesses[index],
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => BusinessDetailsScreen(business: businesses[index]),
+                  ),
+                );
+              },
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
         },
       ),
     );

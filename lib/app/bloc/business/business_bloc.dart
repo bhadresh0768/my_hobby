@@ -6,7 +6,6 @@ import 'business_state.dart';
 
 class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
   final BusinessRepository _businessRepository;
-  StreamSubscription? _businessesSubscription;
 
   BusinessBloc({required BusinessRepository businessRepository})
       : _businessRepository = businessRepository,
@@ -14,6 +13,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     on<BusinessRegisterRequested>(_onRegisterRequested);
     on<BusinessUpdateRequested>(_onUpdateRequested);
     on<BusinessFetchRequested>(_onFetchRequested);
+    on<BusinessLoadMoreRequested>(_onLoadMoreRequested);
     on<BusinessFetchMyBusinessesRequested>(_onFetchMyBusinessesRequested);
     on<BusinessDeleteRequested>(_onDeleteRequested);
     on<BusinessUpdated>(_onUpdated);
@@ -43,37 +43,68 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
   }
 
   Future<void> _onFetchRequested(BusinessFetchRequested event, Emitter<BusinessState> emit) async {
-    emit(state.copyWith(status: BusinessBlocStatus.loading));
+    emit(state.copyWith(status: BusinessBlocStatus.loading, businesses: []));
     
-    await _businessesSubscription?.cancel();
+    try {
+      final result = await _businessRepository.getBusinesses(category: event.category);
+      
+      emit(state.copyWith(
+        status: BusinessBlocStatus.success,
+        businesses: result.businesses,
+        lastDoc: result.lastDoc,
+        hasMore: result.hasMore,
+      ));
+    } catch (e) {
+      emit(state.copyWith(status: BusinessBlocStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onLoadMoreRequested(BusinessLoadMoreRequested event, Emitter<BusinessState> emit) async {
+    if (!state.hasMore || state.isFetchingMore || state.status == BusinessBlocStatus.loading) return;
+
+    emit(state.copyWith(isFetchingMore: true));
     
-    final stream = _businessRepository.getBusinesses(category: event.category);
-    
-    _businessesSubscription = stream.listen(
-      (businesses) => add(BusinessUpdated(businesses)),
-      onError: (error) => add(BusinessErrorOccurred(error.toString())),
-    );
+    try {
+      final result = await _businessRepository.getBusinesses(
+        category: event.category,
+        lastDoc: state.lastDoc,
+      );
+      
+      emit(state.copyWith(
+        isFetchingMore: false,
+        businesses: [...state.businesses, ...result.businesses],
+        lastDoc: result.lastDoc,
+        hasMore: result.hasMore,
+      ));
+    } catch (e) {
+      emit(state.copyWith(isFetchingMore: false, errorMessage: e.toString()));
+    }
   }
 
   Future<void> _onFetchMyBusinessesRequested(
       BusinessFetchMyBusinessesRequested event, Emitter<BusinessState> emit) async {
     emit(state.copyWith(status: BusinessBlocStatus.loading));
     
-    await _businessesSubscription?.cancel();
-    
-    final stream = _businessRepository.getMyBusinesses(event.ownerId);
-    
-    _businessesSubscription = stream.listen(
-      (businesses) => add(BusinessUpdated(businesses)),
-      onError: (error) => add(BusinessErrorOccurred(error.toString())),
-    );
+    try {
+      final stream = _businessRepository.getMyBusinesses(event.ownerId);
+      
+      await emit.forEach(
+        stream,
+        onData: (businesses) => state.copyWith(status: BusinessBlocStatus.success, businesses: businesses),
+        onError: (error, stackTrace) => state.copyWith(status: BusinessBlocStatus.error, errorMessage: error.toString()),
+      );
+    } catch (e) {
+      emit(state.copyWith(status: BusinessBlocStatus.error, errorMessage: e.toString()));
+    }
   }
 
   Future<void> _onDeleteRequested(
       BusinessDeleteRequested event, Emitter<BusinessState> emit) async {
     try {
       await _businessRepository.deleteBusiness(event.id);
-      // The stream subscription will automatically update the list
+      // Manually remove from state since we switched to pagination/futures
+      final updatedList = state.businesses.where((b) => b.id != event.id).toList();
+      emit(state.copyWith(businesses: updatedList));
     } catch (e) {
       emit(state.copyWith(status: BusinessBlocStatus.error, errorMessage: e.toString()));
     }
@@ -85,11 +116,5 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
 
   void _onErrorOccurred(BusinessErrorOccurred event, Emitter<BusinessState> emit) {
     emit(state.copyWith(status: BusinessBlocStatus.error, errorMessage: event.errorMessage));
-  }
-
-  @override
-  Future<void> close() {
-    _businessesSubscription?.cancel();
-    return super.close();
   }
 }
