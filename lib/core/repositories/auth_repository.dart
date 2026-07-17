@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -144,5 +145,36 @@ class AuthRepository {
 
   Future<void> signOut() async {
     await _auth.signOut();
+  }
+
+  Future<void> deleteAccount(String uid) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null || user.uid != uid) {
+        throw Exception('No authenticated user found or UID mismatch');
+      }
+
+      // 1. Delete Profile Image from Storage if exists
+      try {
+        final profileImageRef = _storage.ref().child('profile_images').child('$uid.jpg');
+        await profileImageRef.delete();
+      } catch (e) {
+        // If image doesn't exist, ignore and continue
+        debugPrint('No profile image found to delete for user $uid');
+      }
+
+      // 2. Delete Firestore Document
+      await _firestore.collection('users').doc(uid).delete();
+
+      // 3. Delete from Firebase Auth
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw Exception('This action requires recent authentication. Please logout and login again before deleting your account.');
+      }
+      throw Exception('Failed to delete authentication account: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to delete account: $e');
+    }
   }
 }

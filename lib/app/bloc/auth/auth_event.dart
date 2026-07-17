@@ -59,6 +59,8 @@ class AuthSignInAnonymouslyRequested extends AuthEvent {}
 
 class AuthSignOutRequested extends AuthEvent {}
 
+class AuthAccountDeletionRequested extends AuthEvent {}
+
 class AuthProfileUpdateRequested extends AuthEvent {
   final String displayName;
   final dynamic imageFile; // Use dynamic to avoid mandatory dart:io import if needed in some contexts, but usually File is fine.

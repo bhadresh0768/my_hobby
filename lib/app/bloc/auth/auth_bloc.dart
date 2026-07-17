@@ -19,6 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthOtpSubmitted>(_onOtpSubmitted);
     on<AuthSignInAnonymouslyRequested>(_onSignInAnonymouslyRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
+    on<AuthAccountDeletionRequested>(_onAccountDeletionRequested);
     on<AuthProfileUpdateRequested>(_onProfileUpdateRequested);
     on<AuthToggleFavoriteRequested>(_onToggleFavoriteRequested);
 
@@ -141,6 +142,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onSignOutRequested(AuthSignOutRequested event, Emitter<AuthState> emit) async {
     try {
       await _authRepository.signOut();
+      emit(const AuthState(status: AuthStatus.unauthenticated));
+    } catch (e) {
+      emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onAccountDeletionRequested(AuthAccountDeletionRequested event, Emitter<AuthState> emit) async {
+    if (state.user == null) return;
+    emit(state.copyWith(status: AuthStatus.loading));
+    try {
+      await _authRepository.deleteAccount(state.user!.uid);
       emit(const AuthState(status: AuthStatus.unauthenticated));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));

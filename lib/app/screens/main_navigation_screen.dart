@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/auth/auth_event.dart';
@@ -172,6 +173,39 @@ class _ProfileWrapper extends StatelessWidget {
                   },
                 ),
                 const Divider(),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                  child: Text(
+                    'Policies',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip_outlined, color: Colors.blue),
+                  title: const Text('Privacy Policy'),
+                  trailing: const Icon(Icons.open_in_new, size: 16, color: Colors.grey),
+                  onTap: () => _launchURL('https://mvapptools.blogspot.com/2026/03/privacy-policy.html'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined, color: Colors.blue),
+                  title: const Text('Terms & Conditions'),
+                  trailing: const Icon(Icons.open_in_new, size: 16, color: Colors.grey),
+                  onTap: () => _launchURL('https://mvapptools.blogspot.com/2026/03/terms-conditions.html'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.blue),
+                  title: const Text('Data Deletion Policy'),
+                  trailing: const Icon(Icons.open_in_new, size: 16, color: Colors.grey),
+                  onTap: () => _launchURL('https://mvapptools.blogspot.com/2026/03/data-deletion-policy.html'),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.delete_forever, color: Colors.red),
+                  title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+                  subtitle: const Text('Permanently delete your account and data', style: TextStyle(fontSize: 12)),
+                  onTap: () => _showDeleteAccountDialog(context),
+                ),
+                const Divider(),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text('Logout'),
@@ -187,6 +221,42 @@ class _ProfileWrapper extends StatelessWidget {
         return const SizedBox.shrink();
       },
     );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Account?'),
+        content: const Text(
+          'This action is permanent and cannot be undone. All your profile data, favorites, and uploaded images will be permanently deleted from our servers.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<AuthBloc>().add(AuthAccountDeletionRequested());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
   }
 }
 
