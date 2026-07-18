@@ -18,6 +18,7 @@ import '../../bloc/review/review_state.dart';
 import '../../../../common/models/review_model.dart';
 import 'widgets/add_review_dialog.dart';
 import 'widgets/reply_review_dialog.dart';
+import 'widgets/expandable_description.dart';
 import 'full_screen_image_viewer.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
@@ -454,7 +455,12 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(offer.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(offer.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey[700])),
+                const SizedBox(height: 4),
+                ExpandableDescription(
+                  description: offer.description,
+                  maxLines: 2,
+                  style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
@@ -503,7 +509,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(promo.description, style: const TextStyle(fontSize: 15)),
+                ExpandableDescription(
+                  description: promo.description,
+                  maxLines: 3,
+                  style: const TextStyle(fontSize: 15),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -517,7 +527,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                 ),
                 if (promo.termsAndConditions.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text('* ${promo.termsAndConditions}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  ExpandableDescription(
+                    description: '* ${promo.termsAndConditions}',
+                    maxLines: 2,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
                 ],
                 const SizedBox(height: 16),
                 BlocBuilder<PromoBloc, PromoState>(

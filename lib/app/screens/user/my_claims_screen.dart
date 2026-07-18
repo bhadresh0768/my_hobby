@@ -10,6 +10,7 @@ import '../../bloc/promo/promo_event.dart';
 import '../../bloc/promo/promo_state.dart';
 import '../business/business_details_screen.dart';
 import '../business/full_screen_image_viewer.dart';
+import '../business/widgets/expandable_description.dart';
 import '../../../core/repositories/business_repository.dart';
 
 class MyClaimsScreen extends StatefulWidget {
@@ -157,7 +158,11 @@ class _MyClaimsScreenState extends State<MyClaimsScreen> {
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text(promo.description, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                              ExpandableDescription(
+                                                description: promo.description,
+                                                maxLines: 3,
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                              ),
                                               const SizedBox(height: 4),
                                               Text(
                                                 _formatDiscount(promo),

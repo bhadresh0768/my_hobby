@@ -9,6 +9,7 @@ import '../../bloc/promo/promo_state.dart';
 import 'add_edit_promo_screen.dart';
 import 'add_edit_offer_screen.dart';
 import 'promo_claims_list_screen.dart';
+import 'widgets/expandable_description.dart';
 
 class ManagePromosOffersScreen extends StatefulWidget {
   final Business business;
@@ -90,60 +91,79 @@ class _ManagePromosOffersScreenState extends State<ManagePromosOffersScreen> wit
           itemBuilder: (context, index) {
             final promoItem = state.promos[index];
             return Card(
-              child: ListTile(
-                title: Text(promoItem.code, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Column(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(promoItem.description),
-                    const SizedBox(height: 4),
-                    Text('Remaining: ${promoItem.remainingUsage} / ${promoItem.maxUsage}',
-                        style: TextStyle(color: promoItem.remainingUsage > 0 ? Colors.green : Colors.red)),
-                  ],
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Switch(
-                      value: promoItem.isActive,
-                      onChanged: (val) {
-                        final updated = PromoCode(
-                          id: promoItem.id,
-                          businessId: promoItem.businessId,
-                          code: promoItem.code,
-                          description: promoItem.description,
-                          discountValue: promoItem.discountValue,
-                          discountType: promoItem.discountType,
-                          maxUsage: promoItem.maxUsage,
-                          currentUsage: promoItem.currentUsage,
-                          startDate: promoItem.startDate,
-                          endDate: promoItem.endDate,
-                          imageUrls: promoItem.imageUrls,
-                          termsAndConditions: promoItem.termsAndConditions,
-                          isActive: val,
-                        );
-                        context.read<PromoBloc>().add(PromoUpdateRequested(updated));
-                      },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(promoItem.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        Switch(
+                          value: promoItem.isActive,
+                          onChanged: (val) {
+                            final updated = PromoCode(
+                              id: promoItem.id,
+                              businessId: promoItem.businessId,
+                              code: promoItem.code,
+                              description: promoItem.description,
+                              discountValue: promoItem.discountValue,
+                              discountType: promoItem.discountType,
+                              maxUsage: promoItem.maxUsage,
+                              currentUsage: promoItem.currentUsage,
+                              startDate: promoItem.startDate,
+                              endDate: promoItem.endDate,
+                              imageUrls: promoItem.imageUrls,
+                              termsAndConditions: promoItem.termsAndConditions,
+                              isActive: val,
+                            );
+                            context.read<PromoBloc>().add(PromoUpdateRequested(updated));
+                          },
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.people, color: Colors.green),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => PromoClaimsListScreen(promo: promoItem)),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => AddEditPromoScreen(businessId: widget.business.id, promo: promoItem)),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => context.read<PromoBloc>().add(PromoDeleteRequested(promoItem.id)),
+                    const SizedBox(height: 8),
+                    ExpandableDescription(description: promoItem.description),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Remaining: ${promoItem.remainingUsage} / ${promoItem.maxUsage}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: promoItem.remainingUsage > 0 ? Colors.green : Colors.red)),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.people, color: Colors.green),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => PromoClaimsListScreen(promo: promoItem)),
+                                );
+                              },
+                              tooltip: 'Claims',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          AddEditPromoScreen(businessId: widget.business.id, promo: promoItem)),
+                                );
+                              },
+                              tooltip: 'Edit',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => context.read<PromoBloc>().add(PromoDeleteRequested(promoItem.id)),
+                              tooltip: 'Delete',
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -170,40 +190,66 @@ class _ManagePromosOffersScreenState extends State<ManagePromosOffersScreen> wit
           itemBuilder: (context, index) {
             final offer = state.offers[index];
             return Card(
-              child: ListTile(
-                title: Text(offer.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(offer.description),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Switch(
-                      value: offer.isActive,
-                      onChanged: (val) {
-                        final updated = Offer(
-                          id: offer.id,
-                          businessId: offer.businessId,
-                          title: offer.title,
-                          description: offer.description,
-                          startDate: offer.startDate,
-                          endDate: offer.endDate,
-                          imageUrls: offer.imageUrls,
-                          termsAndConditions: offer.termsAndConditions,
-                          isActive: val,
-                        );
-                        context.read<PromoBloc>().add(OfferUpdateRequested(updated));
-                      },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(offer.title,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        Switch(
+                          value: offer.isActive,
+                          onChanged: (val) {
+                            final updated = Offer(
+                              id: offer.id,
+                              businessId: offer.businessId,
+                              title: offer.title,
+                              description: offer.description,
+                              startDate: offer.startDate,
+                              endDate: offer.endDate,
+                              imageUrls: offer.imageUrls,
+                              termsAndConditions: offer.termsAndConditions,
+                              isActive: val,
+                            );
+                            context.read<PromoBloc>().add(OfferUpdateRequested(updated));
+                          },
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => AddEditOfferScreen(businessId: widget.business.id, offer: offer)),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => context.read<PromoBloc>().add(OfferDeleteRequested(offer.id)),
+                    const SizedBox(height: 8),
+                    ExpandableDescription(description: offer.description),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        AddEditOfferScreen(businessId: widget.business.id, offer: offer)),
+                              );
+                            },
+                            tooltip: 'Edit',
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => context.read<PromoBloc>().add(OfferDeleteRequested(offer.id)),
+                            tooltip: 'Delete',
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
