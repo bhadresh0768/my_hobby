@@ -18,6 +18,9 @@ class Business {
   final String phoneNumber;
   final String whatsappNumber;
   final String email;
+  final String? instagramUrl;
+  final String? facebookUrl;
+  final String? websiteUrl;
   final String? logoUrl;
   final bool isVerified;
   final double averageRating;
@@ -48,6 +51,9 @@ class Business {
     required this.phoneNumber,
     required this.whatsappNumber,
     required this.email,
+    this.instagramUrl,
+    this.facebookUrl,
+    this.websiteUrl,
     this.logoUrl,
     this.isVerified = false,
     this.averageRating = 0.0,
@@ -100,6 +106,9 @@ class Business {
       phoneNumber: data['phoneNumber'] ?? '',
       whatsappNumber: data['whatsappNumber'] ?? '',
       email: data['email'] ?? '',
+      instagramUrl: data['instagramUrl'],
+      facebookUrl: data['facebookUrl'],
+      websiteUrl: data['websiteUrl'],
       logoUrl: data['logoUrl'],
       isVerified: data['isVerified'] ?? false,
       averageRating: (data['averageRating'] ?? 0.0).toDouble(),
@@ -145,6 +154,9 @@ class Business {
       'phoneNumber': phoneNumber,
       'whatsappNumber': whatsappNumber,
       'email': email,
+      'instagramUrl': instagramUrl,
+      'facebookUrl': facebookUrl,
+      'websiteUrl': websiteUrl,
       'logoUrl': logoUrl,
       'isVerified': isVerified,
       'averageRating': averageRating,

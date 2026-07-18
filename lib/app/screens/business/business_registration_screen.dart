@@ -41,6 +41,9 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
   final _phoneController = TextEditingController();
   final _whatsappController = TextEditingController();
   final _emailController = TextEditingController();
+  final _instagramController = TextEditingController();
+  final _facebookController = TextEditingController();
+  final _websiteController = TextEditingController();
   final _customCategoryController = TextEditingController();
   
   String _selectedCategory = AppConstants.businessCategories.first;
@@ -70,6 +73,9 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
       _phoneController.text = widget.business!.phoneNumber;
       _whatsappController.text = widget.business!.whatsappNumber;
       _emailController.text = widget.business!.email;
+      _instagramController.text = widget.business!.instagramUrl ?? '';
+      _facebookController.text = widget.business!.facebookUrl ?? '';
+      _websiteController.text = widget.business!.websiteUrl ?? '';
       
       if (AppConstants.businessCategories.contains(widget.business!.category)) {
         _selectedCategory = widget.business!.category;
@@ -169,6 +175,9 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
     _phoneController.dispose();
     _whatsappController.dispose();
     _emailController.dispose();
+    _instagramController.dispose();
+    _facebookController.dispose();
+    _websiteController.dispose();
     _customCategoryController.dispose();
     super.dispose();
   }
@@ -521,6 +530,36 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                           keyboardType: TextInputType.emailAddress,
                           validator: Validators.validateEmail,
                         ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _instagramController,
+                          decoration: const InputDecoration(
+                            labelText: 'Instagram Profile Link',
+                            hintText: 'https://instagram.com/yourbusiness',
+                            prefixIcon: Icon(Icons.camera_alt_outlined),
+                          ),
+                          keyboardType: TextInputType.url,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _facebookController,
+                          decoration: const InputDecoration(
+                            labelText: 'Facebook Page Link',
+                            hintText: 'https://facebook.com/yourbusiness',
+                            prefixIcon: Icon(Icons.facebook_outlined),
+                          ),
+                          keyboardType: TextInputType.url,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _websiteController,
+                          decoration: const InputDecoration(
+                            labelText: 'Website Link',
+                            hintText: 'https://www.yourbusiness.com',
+                            prefixIcon: Icon(Icons.language_rounded),
+                          ),
+                          keyboardType: TextInputType.url,
+                        ),
                       ],
                     ),
                   ),
@@ -594,6 +633,9 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
           phoneNumber: _phoneController.text.trim(),
           whatsappNumber: _whatsappController.text.trim(),
           email: _emailController.text.trim(),
+          instagramUrl: _instagramController.text.trim().isEmpty ? null : _instagramController.text.trim(),
+          facebookUrl: _facebookController.text.trim().isEmpty ? null : _facebookController.text.trim(),
+          websiteUrl: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
           imageUrls: [..._imageUrls, ...uploadedUrls],
           latitude: _latitude,
           longitude: _longitude,

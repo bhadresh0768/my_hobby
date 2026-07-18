@@ -154,6 +154,33 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                         onTap: () => _launchUrl('mailto:${widget.business.email}'),
                         color: Colors.redAccent,
                       ),
+                      if (widget.business.instagramUrl != null && widget.business.instagramUrl!.isNotEmpty)
+                        _buildContactTile(
+                          context,
+                          icon: Icons.camera_alt_rounded,
+                          title: 'Instagram',
+                          subtitle: 'View Profile',
+                          onTap: () => _launchUrl(widget.business.instagramUrl!),
+                          color: Colors.purple,
+                        ),
+                      if (widget.business.facebookUrl != null && widget.business.facebookUrl!.isNotEmpty)
+                        _buildContactTile(
+                          context,
+                          icon: Icons.facebook_rounded,
+                          title: 'Facebook',
+                          subtitle: 'View Page',
+                          onTap: () => _launchUrl(widget.business.facebookUrl!),
+                          color: Colors.blueAccent,
+                        ),
+                      if (widget.business.websiteUrl != null && widget.business.websiteUrl!.isNotEmpty)
+                        _buildContactTile(
+                          context,
+                          icon: Icons.language_rounded,
+                          title: 'Website',
+                          subtitle: widget.business.websiteUrl!,
+                          onTap: () => _launchUrl(widget.business.websiteUrl!),
+                          color: Colors.blueGrey,
+                        ),
                       const SizedBox(height: 32),
                       _buildReviewsSection(),
                       const SizedBox(height: 32),
