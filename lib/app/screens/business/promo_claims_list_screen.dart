@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../common/models/promo_model.dart';
@@ -89,12 +90,14 @@ class _PromoClaimsListScreenState extends State<PromoClaimsListScreen> {
                               claim['userName'] ?? 'Unknown User',
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
+                            isThreeLine: true,
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Phone: ${claim['userPhone'] ?? 'N/A'}'),
                                 const SizedBox(height: 4),
-                                Row(
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     const Icon(Icons.verified_user, size: 14, color: Colors.blue),
                                     const SizedBox(width: 4),
@@ -102,6 +105,19 @@ class _PromoClaimsListScreenState extends State<PromoClaimsListScreen> {
                                     Text(
                                       claim['verificationCode'] ?? 'N/A',
                                       style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 14),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    GestureDetector(
+                                      onTap: () {
+                                        final code = claim['verificationCode'] ?? '';
+                                        if (code.isNotEmpty) {
+                                          Clipboard.setData(ClipboardData(text: code));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Verification code copied')),
+                                          );
+                                        }
+                                      },
+                                      child: const Icon(Icons.copy, size: 16, color: Colors.blue),
                                     ),
                                   ],
                                 ),

@@ -747,7 +747,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(review.comment),
+                ExpandableDescription(
+                  description: review.comment,
+                  maxLines: 3,
+                  style: const TextStyle(fontSize: 14),
+                ),
                 if (review.ownerReply != null) ...[
                   const SizedBox(height: 12),
                   Container(
@@ -772,7 +776,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(review.ownerReply!, style: const TextStyle(fontSize: 13)),
+                        ExpandableDescription(
+                          description: review.ownerReply!,
+                          maxLines: 3,
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ],
                     ),
                   ),
