@@ -102,7 +102,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           .toList();
 
                       if (filteredBusinesses.isEmpty) {
-                        return const Center(child: Text('No businesses found.'));
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('No businesses found.'),
+                              if (state.errorMessage != null)
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Text(
+                                    'Error: ${state.errorMessage}',
+                                    style: const TextStyle(color: Colors.red),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
                       }
                       return _isGridView
                           ? _buildBusinessGrid(filteredBusinesses, state)

@@ -32,6 +32,7 @@ class BusinessDetailsScreen extends StatefulWidget {
 class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  bool _isReviewsExpanded = false;
 
   @override
   void initState() {
@@ -554,6 +555,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                   builder: (context, authState) {
                     final isOwner = authState.user?.uid == widget.business.ownerId;
                     if (isOwner || authState.isGuest) return const SizedBox.shrink();
+                    
+                    // Check if user already reviewed
+                    final hasReviewed = state.reviews.any((r) => r.userId == authState.user?.uid);
+                    if (hasReviewed) return const SizedBox.shrink();
+
                     return TextButton.icon(
                       onPressed: () {
                         showDialog(
@@ -577,14 +583,36 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                 child: Center(child: Text('No reviews yet. Be the first to review!')),
               )
             else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: state.reviews.length,
-                itemBuilder: (context, index) {
-                  final review = state.reviews[index];
-                  return _buildReviewTile(review);
-                },
+              Column(
+                children: [
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _isReviewsExpanded
+                        ? state.reviews.length
+                        : (state.reviews.length > 2 ? 2 : state.reviews.length),
+                    itemBuilder: (context, index) {
+                      final review = state.reviews[index];
+                      return _buildReviewTile(review);
+                    },
+                  ),
+                  if (state.reviews.length > 2)
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _isReviewsExpanded = !_isReviewsExpanded;
+                          });
+                        },
+                        icon: Icon(
+                          _isReviewsExpanded
+                              ? Icons.keyboard_arrow_up_rounded
+                              : Icons.keyboard_arrow_down_rounded,
+                        ),
+                        label: Text(_isReviewsExpanded ? 'View Less' : 'View All'),
+                      ),
+                    ),
+                ],
               ),
           ],
         );
@@ -596,6 +624,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         final isOwner = authState.user?.uid == widget.business.ownerId;
+        final isMyReview = authState.user?.uid == review.userId;
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -626,6 +655,45 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                         ],
                       ),
                     ),
+                    if (isMyReview) ...[
+                      IconButton(
+                        icon: const Icon(Icons.edit_rounded, size: 18, color: Colors.blue),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AddReviewDialog(
+                              business: widget.business,
+                              existingReview: review,
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Delete Review'),
+                              content: const Text('Are you sure you want to delete your review?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    context.read<ReviewBloc>().add(ReviewDeleteRequested(review));
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                     Row(
                       children: List.generate(5, (index) {
                         return Icon(
@@ -651,7 +719,17 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Owner\'s Reply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Owner\'s Reply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            if (review.ownerReplyAt != null)
+                              Text(
+                                DateFormat('MMM dd, yyyy').format(review.ownerReplyAt!),
+                                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                              ),
+                          ],
+                        ),
                         const SizedBox(height: 4),
                         Text(review.ownerReply!, style: const TextStyle(fontSize: 13)),
                       ],

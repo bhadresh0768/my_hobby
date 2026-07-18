@@ -8,8 +8,9 @@ import '../../../bloc/review/review_event.dart';
 
 class AddReviewDialog extends StatefulWidget {
   final Business business;
+  final Review? existingReview;
 
-  const AddReviewDialog({super.key, required this.business});
+  const AddReviewDialog({super.key, required this.business, this.existingReview});
 
   @override
   State<AddReviewDialog> createState() => _AddReviewDialogState();
@@ -20,6 +21,15 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
   final _commentController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.existingReview != null) {
+      _rating = widget.existingReview!.rating;
+      _commentController.text = widget.existingReview!.comment;
+    }
+  }
+
+  @override
   void dispose() {
     _commentController.dispose();
     super.dispose();
@@ -28,9 +38,10 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
   @override
   Widget build(BuildContext context) {
     final user = context.read<AuthBloc>().state.user;
+    final bool isEditing = widget.existingReview != null;
 
     return AlertDialog(
-      title: const Text('Add Review'),
+      title: Text(isEditing ? 'Edit Review' : 'Add Review'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -72,20 +83,38 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
               ? null
               : () {
                   if (user == null) return;
-                  final review = Review(
-                    id: '',
-                    businessId: widget.business.id,
-                    userId: user.uid,
-                    userName: user.displayName ?? 'Anonymous',
-                    userPhotoUrl: user.photoUrl,
-                    rating: _rating,
-                    comment: _commentController.text,
-                    createdAt: DateTime.now(),
-                  );
-                  context.read<ReviewBloc>().add(ReviewAddRequested(review));
+                  if (isEditing) {
+                    final updatedReview = Review(
+                      id: widget.existingReview!.id,
+                      businessId: widget.business.id,
+                      userId: user.uid,
+                      userName: user.displayName ?? 'Anonymous',
+                      userPhotoUrl: user.photoUrl,
+                      rating: _rating,
+                      comment: _commentController.text,
+                      createdAt: widget.existingReview!.createdAt,
+                      ownerReply: widget.existingReview!.ownerReply,
+                    );
+                    context.read<ReviewBloc>().add(ReviewUpdateRequested(
+                          oldReview: widget.existingReview!,
+                          newReview: updatedReview,
+                        ));
+                  } else {
+                    final review = Review(
+                      id: '',
+                      businessId: widget.business.id,
+                      userId: user.uid,
+                      userName: user.displayName ?? 'Anonymous',
+                      userPhotoUrl: user.photoUrl,
+                      rating: _rating,
+                      comment: _commentController.text,
+                      createdAt: DateTime.now(),
+                    );
+                    context.read<ReviewBloc>().add(ReviewAddRequested(review));
+                  }
                   Navigator.pop(context);
                 },
-          child: const Text('Submit'),
+          child: Text(isEditing ? 'Update' : 'Submit'),
         ),
       ],
     );

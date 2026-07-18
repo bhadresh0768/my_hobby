@@ -26,11 +26,11 @@ class Business {
   final List<String> imageUrls;
   final Map<String, dynamic>? metadata;
 
-  // New Fields
   final BusinessStatus status;
   final bool isSubscriptionEnabled;
   final DateTime? subscriptionStartDate;
   final DateTime? subscriptionEndDate;
+  final DateTime createdAt;
 
   Business({
     required this.id,
@@ -59,6 +59,7 @@ class Business {
     this.isSubscriptionEnabled = false,
     this.subscriptionStartDate,
     this.subscriptionEndDate,
+    required this.createdAt,
   });
 
   bool get isPubliclyVisible {
@@ -110,6 +111,7 @@ class Business {
       isSubscriptionEnabled: data['isSubscriptionEnabled'] ?? false,
       subscriptionStartDate: (data['subscriptionStartDate'] as Timestamp?)?.toDate(),
       subscriptionEndDate: (data['subscriptionEndDate'] as Timestamp?)?.toDate(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
@@ -154,6 +156,7 @@ class Business {
       'isSubscriptionEnabled': isSubscriptionEnabled,
       'subscriptionStartDate': subscriptionStartDate != null ? Timestamp.fromDate(subscriptionStartDate!) : null,
       'subscriptionEndDate': subscriptionEndDate != null ? Timestamp.fromDate(subscriptionEndDate!) : null,
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 }

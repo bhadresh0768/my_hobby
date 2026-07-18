@@ -12,6 +12,17 @@ class ReviewAddRequested extends ReviewEvent {
   ReviewAddRequested(this.review);
 }
 
+class ReviewUpdateRequested extends ReviewEvent {
+  final Review oldReview;
+  final Review newReview;
+  ReviewUpdateRequested({required this.oldReview, required this.newReview});
+}
+
+class ReviewDeleteRequested extends ReviewEvent {
+  final Review review;
+  ReviewDeleteRequested(this.review);
+}
+
 class ReviewReplyAdded extends ReviewEvent {
   final String businessId;
   final String reviewId;

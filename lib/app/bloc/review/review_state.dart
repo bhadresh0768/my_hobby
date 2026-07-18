@@ -1,6 +1,6 @@
 import '../../../common/models/review_model.dart';
 
-enum ReviewStatus { initial, loading, success, adding, addSuccess, failure }
+enum ReviewStatus { initial, loading, success, adding, addSuccess, updating, updateSuccess, deleting, deleteSuccess, failure }
 
 class ReviewState {
   final ReviewStatus status;

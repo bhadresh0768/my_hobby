@@ -601,6 +601,7 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
           averageRating: widget.business?.averageRating ?? 0.0,
           totalReviews: widget.business?.totalReviews ?? 0,
           favoriteCount: widget.business?.favoriteCount ?? 0,
+          createdAt: widget.business?.createdAt ?? DateTime.now(),
         );
 
         if (widget.business != null) {

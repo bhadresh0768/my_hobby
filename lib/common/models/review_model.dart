@@ -10,6 +10,7 @@ class Review {
   final String comment;
   final DateTime createdAt;
   final String? ownerReply;
+  final DateTime? ownerReplyAt;
 
   Review({
     required this.id,
@@ -21,6 +22,7 @@ class Review {
     required this.comment,
     required this.createdAt,
     this.ownerReply,
+    this.ownerReplyAt,
   });
 
   factory Review.fromFirestore(DocumentSnapshot doc) {
@@ -35,6 +37,7 @@ class Review {
       comment: data['comment'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       ownerReply: data['ownerReply'],
+      ownerReplyAt: data['ownerReplyAt'] != null ? (data['ownerReplyAt'] as Timestamp).toDate() : null,
     );
   }
 
@@ -48,6 +51,7 @@ class Review {
       'comment': comment,
       'createdAt': Timestamp.fromDate(createdAt),
       'ownerReply': ownerReply,
+      'ownerReplyAt': ownerReplyAt != null ? Timestamp.fromDate(ownerReplyAt!) : null,
     };
   }
 }

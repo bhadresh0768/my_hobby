@@ -45,15 +45,16 @@ class BusinessRepository {
   Future<PaginatedBusinesses> getBusinesses({
     String? category,
     DocumentSnapshot? lastDoc,
-    int limit = 10,
+    int limit = 20, // Increased limit to ensure visible results
   }) async {
-    Query query = _firestore.collection(AppConstants.businessesCollection)
-        .where('isPubliclyVisible', isEqualTo: true)
-        .orderBy('createdAt', descending: true);
+    Query query = _firestore.collection(AppConstants.businessesCollection);
     
     if (category != null && category != 'All') {
       query = query.where('category', isEqualTo: category);
     }
+
+    // Sort by name which is guaranteed to exist and is predictable for pagination
+    query = query.orderBy('name');
 
     if (lastDoc != null) {
       query = query.startAfterDocument(lastDoc);
@@ -68,7 +69,7 @@ class BusinessRepository {
     return PaginatedBusinesses(
       businesses: businesses,
       lastDoc: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
-      hasMore: businesses.length == limit,
+      hasMore: snapshot.docs.length == limit,
     );
   }
 
