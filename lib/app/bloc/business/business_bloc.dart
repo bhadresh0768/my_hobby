@@ -43,11 +43,24 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
   }
 
   Future<void> _onFetchRequested(BusinessFetchRequested event, Emitter<BusinessState> emit) async {
-    emit(state.copyWith(status: BusinessBlocStatus.loading, businesses: []));
-    
+    emit(state.copyWith(
+      status: BusinessBlocStatus.loading,
+      businesses: [],
+      sortBy: event.sortBy,
+      selectedCity: event.city,
+      latitude: event.latitude,
+      longitude: event.longitude,
+    ));
+
     try {
-      final result = await _businessRepository.getBusinesses(category: event.category);
-      
+      final result = await _businessRepository.getBusinesses(
+        category: event.category,
+        city: event.city,
+        sortBy: event.sortBy,
+        latitude: event.latitude,
+        longitude: event.longitude,
+      );
+
       emit(state.copyWith(
         status: BusinessBlocStatus.success,
         businesses: result.businesses,
@@ -63,13 +76,17 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     if (!state.hasMore || state.isFetchingMore || state.status == BusinessBlocStatus.loading) return;
 
     emit(state.copyWith(isFetchingMore: true));
-    
+
     try {
       final result = await _businessRepository.getBusinesses(
         category: event.category,
+        city: event.city ?? state.selectedCity,
         lastDoc: state.lastDoc,
+        sortBy: state.sortBy,
+        latitude: state.latitude,
+        longitude: state.longitude,
       );
-      
+
       emit(state.copyWith(
         isFetchingMore: false,
         businesses: [...state.businesses, ...result.businesses],

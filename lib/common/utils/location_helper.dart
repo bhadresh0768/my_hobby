@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class LocationHelper {
   /// Handles the complex flow of checking and requesting location permissions.
@@ -73,6 +74,21 @@ class LocationHelper {
       );
     } catch (e) {
       debugPrint('Error getting current location: $e');
+      return null;
+    }
+  }
+
+  /// Performs reverse geocoding to get the city name from coordinates.
+  static Future<String?> getCityFromCoordinates(double latitude, double longitude) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isNotEmpty) {
+        // Priority: locality (city), then subAdministrativeArea
+        return placemarks[0].locality ?? placemarks[0].subAdministrativeArea;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error reverse geocoding: $e');
       return null;
     }
   }

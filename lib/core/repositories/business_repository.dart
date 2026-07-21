@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path/path.dart' as p;
+import 'package:dart_geohash/dart_geohash.dart';
 import '../../common/models/business_model.dart';
 import '../../core/app_constants.dart';
 
@@ -44,17 +45,96 @@ class BusinessRepository {
 
   Future<PaginatedBusinesses> getBusinesses({
     String? category,
+    String? city,
     DocumentSnapshot? lastDoc,
-    int limit = 20, // Increased limit to ensure visible results
+    int limit = 20,
+    String sortBy = 'newest', // 'newest', 'top_rated', 'nearby', 'name'
+    double? latitude,
+    double? longitude,
+    double radiusInKm = 50.0,
   }) async {
     Query query = _firestore.collection(AppConstants.businessesCollection);
-    
+
+    // Only show approved/active businesses to users
+    query = query.where('status', whereIn: ['approved', 'active']);
+
     if (category != null && category != 'All') {
       query = query.where('category', isEqualTo: category);
     }
 
-    // Sort by name which is guaranteed to exist and is predictable for pagination
-    query = query.orderBy('name');
+    if (city != null && city != 'All Cities') {
+      query = query.where('city', isEqualTo: city);
+    }
+
+    if (sortBy == 'nearby' && latitude != null && longitude != null) {
+      return _getNearbyBusinesses(
+        category: category,
+        lastDoc: lastDoc,
+        limit: limit,
+        latitude: latitude,
+        longitude: longitude,
+        radiusInKm: radiusInKm,
+      );
+    }
+
+    // Apply Sorting
+    switch (sortBy) {
+      case 'top_rated':
+        query = query.orderBy('averageRating', descending: true);
+        query = query.orderBy('createdAt', descending: true); // Secondary sort
+        break;
+      case 'newest':
+        query = query.orderBy('createdAt', descending: true);
+        break;
+      case 'name':
+      default:
+        query = query.orderBy('name');
+        break;
+    }
+
+    if (lastDoc != null) {
+      query = query.startAfterDocument(lastDoc);
+    }
+
+    final snapshot = await query.limit(limit).get();
+
+    final businesses = snapshot.docs.map((doc) => Business.fromFirestore(doc)).toList();
+
+    return PaginatedBusinesses(
+      businesses: businesses,
+      lastDoc: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+      hasMore: snapshot.docs.length == limit,
+    );
+  }
+
+  Future<PaginatedBusinesses> _getNearbyBusinesses({
+    String? category,
+    DocumentSnapshot? lastDoc,
+    int limit = 20,
+    required double latitude,
+    required double longitude,
+    required double radiusInKm,
+  }) async {
+    // Geo-queries in Firestore are typically done using range queries on Geohashes
+    final GeoHash center = GeoHash.fromDecimalDegrees(longitude, latitude);
+    
+    // Very simple approximation: use a 4 or 5 character geohash prefix for range
+    // For 50km, a 3-4 char geohash range is usually sufficient for a broad sweep
+    // A more precise way would use a library like geoflutterfire, but for this implementation
+    // we'll use a broad geohash range query.
+    
+    final String centerHash = center.geohash;
+    final String searchPrefix = centerHash.substring(0, 3); // Broad 50-100km range
+    
+    Query query = _firestore.collection(AppConstants.businessesCollection)
+        .where('geohash', isGreaterThanOrEqualTo: searchPrefix)
+        .where('geohash', isLessThanOrEqualTo: '$searchPrefix\uf8ff');
+
+    if (category != null && category != 'All') {
+      query = query.where('category', isEqualTo: category);
+    }
+    
+    query = query.where('status', whereIn: ['approved', 'active']);
 
     if (lastDoc != null) {
       query = query.startAfterDocument(lastDoc);
@@ -62,9 +142,7 @@ class BusinessRepository {
 
     final snapshot = await query.limit(limit).get();
     
-    final businesses = snapshot.docs
-        .map((doc) => Business.fromFirestore(doc))
-        .toList();
+    final businesses = snapshot.docs.map((doc) => Business.fromFirestore(doc)).toList();
 
     return PaginatedBusinesses(
       businesses: businesses,

@@ -28,6 +28,8 @@ class Business {
   final int favoriteCount;
   final List<String> imageUrls;
   final Map<String, dynamic>? metadata;
+  final String? geohash;
+  final bool isFeatured;
 
   final BusinessStatus status;
   final bool isSubscriptionEnabled;
@@ -61,6 +63,8 @@ class Business {
     this.favoriteCount = 0,
     this.imageUrls = const [],
     this.metadata,
+    this.geohash,
+    this.isFeatured = false,
     this.status = BusinessStatus.approved,
     this.isSubscriptionEnabled = false,
     this.subscriptionStartDate,
@@ -116,6 +120,8 @@ class Business {
       favoriteCount: data['favoriteCount'] ?? 0,
       imageUrls: List<String>.from(data['imageUrls'] ?? []),
       metadata: data['metadata'],
+      geohash: data['geohash'],
+      isFeatured: data['isFeatured'] ?? false,
       status: _parseStatus(data['status']),
       isSubscriptionEnabled: data['isSubscriptionEnabled'] ?? false,
       subscriptionStartDate: (data['subscriptionStartDate'] as Timestamp?)?.toDate(),
@@ -164,6 +170,8 @@ class Business {
       'favoriteCount': favoriteCount,
       'imageUrls': imageUrls,
       'metadata': metadata,
+      'geohash': geohash,
+      'isFeatured': isFeatured,
       'status': status.name,
       'isSubscriptionEnabled': isSubscriptionEnabled,
       'subscriptionStartDate': subscriptionStartDate != null ? Timestamp.fromDate(subscriptionStartDate!) : null,

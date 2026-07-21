@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:uuid/uuid.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dart_geohash/dart_geohash.dart';
 import '../../../common/models/business_model.dart';
 import '../../../common/utils/validators.dart';
 import '../../../common/utils/location_helper.dart';
@@ -639,6 +640,9 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
           imageUrls: [..._imageUrls, ...uploadedUrls],
           latitude: _latitude,
           longitude: _longitude,
+          geohash: _latitude != null && _longitude != null
+              ? GeoHash.fromDecimalDegrees(_longitude!, _latitude!).geohash
+              : null,
           isVerified: widget.business?.isVerified ?? false,
           averageRating: widget.business?.averageRating ?? 0.0,
           totalReviews: widget.business?.totalReviews ?? 0,

@@ -12,6 +12,7 @@ import '../bloc/business/business_event.dart';
 import '../bloc/business/business_state.dart' as bloc_state;
 import 'business/business_registration_screen.dart';
 import 'business/business_details_screen.dart';
+import '../../common/utils/location_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,13 +24,34 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   String _selectedCategory = 'All';
+  String _selectedSortBy = 'newest';
   bool _isGridView = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    context.read<BusinessBloc>().add(BusinessFetchRequested());
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    final businessBloc = context.read<BusinessBloc>();
+    
+    // 1. Get current location and city
+    final position = await LocationHelper.getCurrentLocation(context);
+    String? detectedCity;
+    
+    if (position != null) {
+      detectedCity = await LocationHelper.getCityFromCoordinates(position.latitude, position.longitude);
+    }
+
+    // 2. Fetch businesses for the detected city (or global if not found)
+    if (context.mounted) {
+      businessBloc.add(BusinessFetchRequested(
+        city: detectedCity,
+        sortBy: 'newest',
+      ));
+    }
   }
 
   @override
@@ -40,7 +62,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      context.read<BusinessBloc>().add(BusinessLoadMoreRequested(category: _selectedCategory));
+      final state = context.read<BusinessBloc>().state;
+      context.read<BusinessBloc>().add(BusinessLoadMoreRequested(
+        category: _selectedCategory,
+        city: state.selectedCity,
+      ));
     }
   }
 
@@ -50,16 +76,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        title: BlocBuilder<BusinessBloc, bloc_state.BusinessState>(
+          builder: (context, state) {
+            return GestureDetector(
+              onTap: () => _showCityPicker(context),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.location_on, size: 18),
+                  const SizedBox(width: 4),
+                  Text(
+                    state.selectedCity ?? 'All Cities',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            );
+          },
+        ),
         actions: [
-          // IconButton(
-          //   icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
-          //   onPressed: () {
-          //     setState(() {
-          //       _isGridView = !_isGridView;
-          //     });
-          //   },
-          // ),
+          IconButton(
+            icon: const Icon(Icons.sort_rounded),
+            onPressed: () => _showSortBottomSheet(context),
+            tooltip: 'Sort & Filter',
+          ),
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               // Show logout only if fully authenticated (not guest)
@@ -176,7 +217,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   _selectedCategory = category;
                 });
-                context.read<BusinessBloc>().add(BusinessFetchRequested(category: category));
+                context.read<BusinessBloc>().add(BusinessFetchRequested(
+                  category: category,
+                  sortBy: _selectedSortBy,
+                  latitude: context.read<BusinessBloc>().state.latitude,
+                  longitude: context.read<BusinessBloc>().state.longitude,
+                ));
               },
               selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
               checkmarkColor: Theme.of(context).primaryColor,
@@ -190,7 +236,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBusinessList(List<Business> businesses, bloc_state.BusinessState state) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<BusinessBloc>().add(BusinessFetchRequested(category: _selectedCategory));
+        context.read<BusinessBloc>().add(BusinessFetchRequested(
+          category: _selectedCategory,
+          sortBy: _selectedSortBy,
+          latitude: state.latitude,
+          longitude: state.longitude,
+        ));
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -251,6 +302,143 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
       ),
+    );
+  }
+
+  void _showCityPicker(BuildContext context) {
+    // In a real app, this would be a search field or a list from the DB
+    final List<String> commonCities = ['All Cities', 'Surat', 'Vapi', 'Ahmedabad', 'Mumbai', 'Delhi'];
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Select City', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Divider(),
+              ...commonCities.map((city) => ListTile(
+                title: Text(city),
+                onTap: () {
+                  context.read<BusinessBloc>().add(BusinessFetchRequested(
+                    city: city == 'All Cities' ? null : city,
+                    sortBy: _selectedSortBy,
+                  ));
+                  Navigator.pop(context);
+                },
+              )),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSortBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Sort By',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSortOption(
+                    context,
+                    setModalState,
+                    title: 'Newest First',
+                    icon: Icons.new_releases_outlined,
+                    value: 'newest',
+                  ),
+                  _buildSortOption(
+                    context,
+                    setModalState,
+                    title: 'Top Rated',
+                    icon: Icons.star_outline_rounded,
+                    value: 'top_rated',
+                  ),
+                  _buildSortOption(
+                    context,
+                    setModalState,
+                    title: 'Nearby (50km)',
+                    icon: Icons.near_me_outlined,
+                    value: 'nearby',
+                  ),
+                  _buildSortOption(
+                    context,
+                    setModalState,
+                    title: 'Alphabetical',
+                    icon: Icons.sort_by_alpha_outlined,
+                    value: 'name',
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  Widget _buildSortOption(
+    BuildContext context,
+    StateSetter setModalState, {
+    required String title,
+    required IconData icon,
+    required String value,
+  }) {
+    final isSelected = _selectedSortBy == value;
+    final primaryColor = Theme.of(context).primaryColor;
+
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? primaryColor : Colors.grey),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? primaryColor : Colors.black87,
+        ),
+      ),
+      trailing: isSelected ? Icon(Icons.check_circle, color: primaryColor) : null,
+      onTap: () async {
+        if (value == 'nearby') {
+          final position = await LocationHelper.getCurrentLocation(context);
+          if (position != null && context.mounted) {
+            setState(() {
+              _selectedSortBy = value;
+            });
+            context.read<BusinessBloc>().add(BusinessFetchRequested(
+              category: _selectedCategory,
+              sortBy: value,
+              latitude: position.latitude,
+              longitude: position.longitude,
+            ));
+            Navigator.pop(context);
+          }
+        } else {
+          setState(() {
+            _selectedSortBy = value;
+          });
+          context.read<BusinessBloc>().add(BusinessFetchRequested(
+            category: _selectedCategory,
+            sortBy: value,
+          ));
+          Navigator.pop(context);
+        }
+      },
     );
   }
 

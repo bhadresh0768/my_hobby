@@ -22,16 +22,29 @@ class BusinessUpdateRequested extends BusinessEvent {
 
 class BusinessFetchRequested extends BusinessEvent {
   final String? category;
-  BusinessFetchRequested({this.category});
+  final String? city;
+  final String sortBy;
+  final double? latitude;
+  final double? longitude;
+
+  BusinessFetchRequested({
+    this.category,
+    this.city,
+    this.sortBy = 'newest',
+    this.latitude,
+    this.longitude,
+  });
+
   @override
-  List<Object?> get props => [category];
+  List<Object?> get props => [category, city, sortBy, latitude, longitude];
 }
 
 class BusinessLoadMoreRequested extends BusinessEvent {
   final String? category;
-  BusinessLoadMoreRequested({this.category});
+  final String? city;
+  BusinessLoadMoreRequested({this.category, this.city});
   @override
-  List<Object?> get props => [category];
+  List<Object?> get props => [category, city];
 }
 
 class BusinessFetchMyBusinessesRequested extends BusinessEvent {
