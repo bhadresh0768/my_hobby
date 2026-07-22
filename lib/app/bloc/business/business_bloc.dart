@@ -53,13 +53,22 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     ));
 
     try {
-      final result = await _businessRepository.getBusinesses(
+      var result = await _businessRepository.getBusinesses(
         category: event.category,
         city: event.city,
         sortBy: event.sortBy,
         latitude: event.latitude,
         longitude: event.longitude,
       );
+
+      // Fallback: If no businesses in current city, fetch top rated globally
+      if (result.businesses.isEmpty && event.city != null) {
+        result = await _businessRepository.getBusinesses(
+          category: event.category,
+          city: null, // Global
+          sortBy: 'top_rated',
+        );
+      }
 
       emit(state.copyWith(
         status: BusinessBlocStatus.success,

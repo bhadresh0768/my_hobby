@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../l10n/app_localizations.dart';
 import '../../common/widgets/business_card.dart';
@@ -76,22 +78,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: BlocBuilder<BusinessBloc, bloc_state.BusinessState>(
           builder: (context, state) {
-            return GestureDetector(
-              onTap: () => _showCityPicker(context),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.location_on, size: 18),
-                  const SizedBox(width: 4),
-                  Text(
-                    state.selectedCity ?? 'All Cities',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const Icon(Icons.arrow_drop_down),
-                ],
-              ),
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.location_on, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  state.selectedCity ?? 'Detecting...',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
             );
           },
         ),
@@ -147,7 +146,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('No businesses found.'),
+                              const Icon(Icons.business_center_outlined, size: 64, color: Colors.grey),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No businesses found in your area.',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Try registering the first business here!',
+                                style: TextStyle(color: Colors.grey),
+                              ),
                               if (state.errorMessage != null)
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -161,9 +170,48 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       }
-                      return _isGridView
-                          ? _buildBusinessGrid(filteredBusinesses, state)
-                          : _buildBusinessList(filteredBusinesses, state);
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (state.selectedCity != null && 
+                              filteredBusinesses.isNotEmpty && 
+                              filteredBusinesses.first.city.toLowerCase() != state.selectedCity!.toLowerCase())
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(Icons.stars_rounded, color: Colors.amber, size: 20),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'No businesses in your city yet. Showing Top Rated businesses globally:',
+                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          Expanded(
+                            child: _isGridView
+                                ? _buildBusinessGrid(filteredBusinesses, state)
+                                : _buildBusinessList(filteredBusinesses, state),
+                          ),
+                        ],
+                      );
                     },
                   );
                 },
@@ -302,37 +350,6 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
       ),
-    );
-  }
-
-  void _showCityPicker(BuildContext context) {
-    // In a real app, this would be a search field or a list from the DB
-    final List<String> commonCities = ['All Cities', 'Surat', 'Vapi', 'Ahmedabad', 'Mumbai', 'Delhi'];
-    
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Select City', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const Divider(),
-              ...commonCities.map((city) => ListTile(
-                title: Text(city),
-                onTap: () {
-                  context.read<BusinessBloc>().add(BusinessFetchRequested(
-                    city: city == 'All Cities' ? null : city,
-                    sortBy: _selectedSortBy,
-                  ));
-                  Navigator.pop(context);
-                },
-              )),
-            ],
-          ),
-        );
-      },
     );
   }
 
