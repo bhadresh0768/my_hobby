@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../common/models/user_model.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
@@ -197,6 +198,31 @@ class _ProfileWrapper extends StatelessWidget {
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                   child: Text(
+                    'Spread the Word',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person_add_alt_1_outlined, color: Colors.blue),
+                  title: const Text('Invite Friends'),
+                  subtitle: const Text('Invite your friends to use Business Diary'),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                  onTap: () => _shareApp(
+                    message: "Hey! Check out Business Diary - A global business directory with real-time promos. Download it now to find local deals! https://play.google.com/store/apps/details?id=com.help.businessdiary",
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.share_outlined, color: Colors.blue),
+                  title: const Text('Share App'),
+                  subtitle: const Text('Share this app with others'),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                  onTap: () => _shareApp(
+                    message: "Business Diary - The ultimate platform for local business discovery and real-time promos. Get it here: https://play.google.com/store/apps/details?id=com.help.businessdiary",
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                  child: Text(
                     'Policies',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
@@ -278,6 +304,10 @@ class _ProfileWrapper extends StatelessWidget {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       debugPrint('Could not launch $url');
     }
+  }
+
+  void _shareApp({required String message}) {
+    Share.share(message);
   }
 }
 
