@@ -13,7 +13,7 @@ Business Diary is a global, cloud-powered business directory designed to connect
 *   **Direct Interaction**: One-tap buttons to **Call** or **WhatsApp** business owners.
 *   **Trust System**: View star ratings and read community reviews.
 *   **Exclusive Promos**: Discover and claim limited-time promo codes (e.g., "First 100 users").
-*   **Multi-Language**: Toggle UI between **English, Hindi, Spanish, Chinese, German, Italian, Urdu, and Arabic** (expandable to more).
+*   **Multi-Language**: Toggle UI between **English, Hindi, Spanish, Chinese, German, Italian, Urdu, Arabic, French, Bengali, Portuguese, Russian, and Japanese** (expandable to more).
 
 ### 2. Business Owners
 *   **Secure Registration**: Create and manage a professional business profile.

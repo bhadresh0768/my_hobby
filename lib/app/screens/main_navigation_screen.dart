@@ -320,6 +320,21 @@ class _ProfileWrapper extends StatelessWidget {
               case 'ar':
                 languageName = 'العربية (Arabic)';
                 break;
+              case 'fr':
+                languageName = 'Français (French)';
+                break;
+              case 'bn':
+                languageName = 'বাংলা (Bengali)';
+                break;
+              case 'pt':
+                languageName = 'Português (Portuguese)';
+                break;
+              case 'ru':
+                languageName = 'Русский (Russian)';
+                break;
+              case 'ja':
+                languageName = '日本語 (Japanese)';
+                break;
               default:
                 languageName = locale.languageCode.toUpperCase();
             }
