@@ -79,4 +79,19 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get offers => 'ऑफ़र्स';
+
+  @override
+  String get language => 'भाषा';
+
+  @override
+  String get selectLanguage => 'भाषा चुनें';
+
+  @override
+  String get favorites => 'पसंदीदा';
+
+  @override
+  String get myBusiness => 'मेरा व्यवसाय';
+
+  @override
+  String get logout => 'लॉगआउट';
 }

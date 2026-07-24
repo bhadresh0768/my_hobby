@@ -13,6 +13,8 @@ import 'auth/login_screen.dart';
 import 'auth/edit_profile_screen.dart';
 import 'business/my_businesses_screen.dart';
 import 'user/my_claims_screen.dart';
+import '../bloc/locale/locale_cubit.dart';
+import '../../l10n/app_localizations.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -41,35 +43,35 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   List<BottomNavigationBarItem> _getNavItems(AuthState state) {
     final List<BottomNavigationBarItem> items = [
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.home_outlined),
-        activeIcon: Icon(Icons.home),
-        label: 'Home',
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.home_outlined),
+        activeIcon: const Icon(Icons.home),
+        label: AppLocalizations.of(context)!.home,
       ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.favorite_outline),
-        activeIcon: Icon(Icons.favorite),
-        label: 'Favorites',
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.favorite_outline),
+        activeIcon: const Icon(Icons.favorite),
+        label: AppLocalizations.of(context)!.favorites,
       ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.local_offer_outlined),
-        activeIcon: Icon(Icons.local_offer),
-        label: 'Offers',
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.local_offer_outlined),
+        activeIcon: const Icon(Icons.local_offer),
+        label: AppLocalizations.of(context)!.offers,
       ),
     ];
 
     if (state.user?.role == UserRole.businessOwner) {
-      items.add(const BottomNavigationBarItem(
-        icon: Icon(Icons.business_center_outlined),
-        activeIcon: Icon(Icons.business_center),
-        label: 'My Business',
+      items.add(BottomNavigationBarItem(
+        icon: const Icon(Icons.business_center_outlined),
+        activeIcon: const Icon(Icons.business_center),
+        label: AppLocalizations.of(context)!.myBusiness,
       ));
     }
 
-    items.add(const BottomNavigationBarItem(
-      icon: Icon(Icons.person_outline),
-      activeIcon: Icon(Icons.person),
-      label: 'Profile',
+    items.add(BottomNavigationBarItem(
+      icon: const Icon(Icons.person_outline),
+      activeIcon: const Icon(Icons.person),
+      label: AppLocalizations.of(context)!.profile,
     ));
 
     return items;
@@ -153,7 +155,7 @@ class _ProfileWrapper extends StatelessWidget {
           final user = state.user;
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Profile'),
+              title: Text(AppLocalizations.of(context)!.profile),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
@@ -195,6 +197,20 @@ class _ProfileWrapper extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                  child: Text(
+                    AppLocalizations.of(context)!.settings,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.language, color: Colors.blue),
+                  title: Text(AppLocalizations.of(context)!.language),
+                  subtitle: Text(Localizations.localeOf(context).languageCode.toUpperCase()),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                  onTap: () => _showLanguageDialog(context),
+                ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                   child: Text(
@@ -255,7 +271,7 @@ class _ProfileWrapper extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Logout'),
+                  title: Text(AppLocalizations.of(context)!.logout),
                   onTap: () {
                     context.read<AuthBloc>().add(AuthSignOutRequested());
                   },
@@ -267,6 +283,57 @@ class _ProfileWrapper extends StatelessWidget {
 
         return const SizedBox.shrink();
       },
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.selectLanguage),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: AppLocalizations.supportedLocales.map((locale) {
+            String languageName = '';
+            switch (locale.languageCode) {
+              case 'en':
+                languageName = 'English';
+                break;
+              case 'hi':
+                languageName = 'हिन्दी';
+                break;
+              case 'es':
+                languageName = 'Español';
+                break;
+              case 'zh':
+                languageName = '中文 (Chinese)';
+                break;
+              case 'de':
+                languageName = 'Deutsch (German)';
+                break;
+              case 'it':
+                languageName = 'Italiano (Italian)';
+                break;
+              case 'ur':
+                languageName = 'اردو (Urdu)';
+                break;
+              case 'ar':
+                languageName = 'العربية (Arabic)';
+                break;
+              default:
+                languageName = locale.languageCode.toUpperCase();
+            }
+
+            return ListTile(
+              title: Text(languageName),
+              onTap: () {
+                context.read<LocaleCubit>().setLocale(locale);
+                Navigator.pop(dialogContext);
+              },
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 

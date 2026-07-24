@@ -14,6 +14,7 @@ import 'core/repositories/review_repository.dart';
 import 'app/bloc/business/business_bloc.dart';
 import 'app/bloc/promo/promo_bloc.dart';
 import 'app/bloc/review/review_bloc.dart';
+import 'app/bloc/locale/locale_cubit.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -44,6 +45,9 @@ void main() async {
           BlocProvider<ReviewBloc>(
             create: (context) => ReviewBloc(reviewRepository: context.read<ReviewRepository>()),
           ),
+          BlocProvider<LocaleCubit>(
+            create: (context) => LocaleCubit(),
+          ),
         ],
         child: const BusinessDiaryApp(),
       ),
@@ -56,25 +60,27 @@ class BusinessDiaryApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Business Diary',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      
-      // Localization Support
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', ''), // English
-        Locale('hi', ''), // Hindi
-      ],
-      
-      // Root Screen: Always start with Navigation (Guest Friendly)
-      home: const MainNavigationScreen(),
+    return BlocBuilder<LocaleCubit, Locale>(
+      builder: (context, locale) {
+        return MaterialApp(
+          title: 'Business Diary',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          locale: locale,
+          
+          // Localization Support
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          
+          // Root Screen: Always start with Navigation (Guest Friendly)
+          home: const MainNavigationScreen(),
+        );
+      },
     );
   }
 }

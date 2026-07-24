@@ -79,4 +79,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offers => 'Offers';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get favorites => 'Favorites';
+
+  @override
+  String get myBusiness => 'My Business';
+
+  @override
+  String get logout => 'Logout';
 }

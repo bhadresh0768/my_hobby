@@ -22,5 +22,10 @@
   "location": "Location",
   "contactInfo": "Contact Info",
   "products": "Products",
-  "offers": "Offers"
+  "offers": "Offers",
+  "language": "Language",
+  "selectLanguage": "Select Language",
+  "favorites": "Favorites",
+  "myBusiness": "My Business",
+  "logout": "Logout"
 }

@@ -22,5 +22,10 @@
   "location": "स्थान",
   "contactInfo": "संपर्क जानकारी",
   "products": "उत्पाद",
-  "offers": "ऑफ़र्स"
+  "offers": "ऑफ़र्स",
+  "language": "भाषा",
+  "selectLanguage": "भाषा चुनें",
+  "favorites": "पसंदीदा",
+  "myBusiness": "मेरा व्यवसाय",
+  "logout": "लॉगआउट"
 }
