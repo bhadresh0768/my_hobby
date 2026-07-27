@@ -11,6 +11,7 @@ import '../../../common/utils/validators.dart';
 import '../../../common/utils/location_helper.dart';
 import '../../../core/app_constants.dart';
 import 'package:csc_picker_plus/csc_picker_plus.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:map_location_picker/map_location_picker.dart' hide BusinessStatus;
 import '../../../core/repositories/business_repository.dart';
 import '../../bloc/auth/auth_bloc.dart';
@@ -47,6 +48,9 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
   final _websiteController = TextEditingController();
   final _customCategoryController = TextEditingController();
   
+  String _completePhone = '';
+  String _completeWhatsapp = '';
+
   String _selectedCategory = AppConstants.businessCategories.first;
   String _selectedCountry = 'India';
   String? _selectedState = '';
@@ -73,6 +77,8 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
       _longitude = widget.business!.longitude;
       _phoneController.text = widget.business!.phoneNumber;
       _whatsappController.text = widget.business!.whatsappNumber;
+      _completePhone = widget.business!.phoneNumber;
+      _completeWhatsapp = widget.business!.whatsappNumber;
       _emailController.text = widget.business!.email;
       _instagramController.text = widget.business!.instagramUrl ?? '';
       _facebookController.text = widget.business!.facebookUrl ?? '';
@@ -521,17 +527,34 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                     isActive: _currentStep >= 3,
                     content: Column(
                       children: [
-                        TextFormField(
+                        IntlPhoneField(
                           controller: _phoneController,
-                          decoration: const InputDecoration(labelText: 'Phone Number'),
-                          keyboardType: TextInputType.phone,
-                          validator: Validators.validatePhone,
+                          decoration: const InputDecoration(
+                            labelText: 'Phone Number',
+                            border: OutlineInputBorder(),
+                          ),
+                          initialCountryCode: 'IN',
+                          onChanged: (phone) {
+                            _completePhone = phone.completeNumber;
+                          },
+                          validator: (phone) {
+                            if (phone == null || phone.number.isEmpty) {
+                              return 'Phone number is required';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
-                        TextFormField(
+                        IntlPhoneField(
                           controller: _whatsappController,
-                          decoration: const InputDecoration(labelText: 'WhatsApp Number'),
-                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'WhatsApp Number',
+                            border: OutlineInputBorder(),
+                          ),
+                          initialCountryCode: 'IN',
+                          onChanged: (phone) {
+                            _completeWhatsapp = phone.completeNumber;
+                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -662,8 +685,8 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
           state: _selectedState ?? '',
           zipcode: _zipcodeController.text.trim(),
           country: _countryController.text.trim(),
-          phoneNumber: _phoneController.text.trim(),
-          whatsappNumber: _whatsappController.text.trim(),
+          phoneNumber: _completePhone.isNotEmpty ? _completePhone : _phoneController.text.trim(),
+          whatsappNumber: _completeWhatsapp.isNotEmpty ? _completeWhatsapp : _whatsappController.text.trim(),
           email: _emailController.text.trim(),
           instagramUrl: _instagramController.text.trim().isEmpty ? null : _instagramController.text.trim(),
           facebookUrl: _facebookController.text.trim().isEmpty ? null : _facebookController.text.trim(),
