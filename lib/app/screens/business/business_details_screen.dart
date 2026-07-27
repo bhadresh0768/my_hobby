@@ -9,6 +9,9 @@ import '../../../common/models/offer_model.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/auth/auth_event.dart';
+import '../../bloc/business/business_bloc.dart';
+import '../../bloc/business/business_event.dart';
+import '../../bloc/business/business_state.dart';
 import '../../bloc/promo/promo_bloc.dart';
 import '../../bloc/promo/promo_event.dart';
 import '../../bloc/promo/promo_state.dart';
@@ -35,16 +38,22 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _isReviewsExpanded = false;
+  late Business _currentBusiness;
 
   @override
   void initState() {
     super.initState();
+    _currentBusiness = widget.business;
     context.read<PromoBloc>().add(PromoLoadForBusinessRequested(widget.business.id));
     final user = context.read<AuthBloc>().state.user;
     if (user != null) {
       context.read<PromoBloc>().add(UserClaimsLoadRequested(user.uid));
     }
-    context.read<ReviewBloc>().add(ReviewFetchRequested(widget.business.id));
+    _fetchReviews();
+  }
+
+  void _fetchReviews() {
+    context.read<ReviewBloc>().add(ReviewFetchRequested(_currentBusiness.id));
   }
 
   @override
@@ -82,174 +91,218 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PromoBloc, PromoState>(
-      listenWhen: (previous, current) => !previous.claimSuccess && current.claimSuccess,
-      listener: (context, state) {
-        if (state.claimSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Promo claimed successfully! View it in the Offers tab.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      },
-      child: BlocListener<PromoBloc, PromoState>(
-        listenWhen: (previous, current) => 
-            previous.status == PromoStatus.claiming && current.status == PromoStatus.failure,
-        listener: (context, state) {
-          if (state.status == PromoStatus.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error ?? 'Action failed'),
-                backgroundColor: Colors.red,
-              ),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PromoBloc, PromoState>(
+          listenWhen: (previous, current) => !previous.claimSuccess && current.claimSuccess,
+          listener: (context, state) {
+            if (state.claimSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Promo claimed successfully! View it in the Offers tab.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<PromoBloc, PromoState>(
+          listenWhen: (previous, current) =>
+              previous.status == PromoStatus.claiming && current.status == PromoStatus.failure,
+          listener: (context, state) {
+            if (state.status == PromoStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.error ?? 'Action failed'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<ReviewBloc, ReviewState>(
+          listenWhen: (previous, current) =>
+              (previous.status != ReviewStatus.addSuccess && current.status == ReviewStatus.addSuccess) ||
+              (previous.status != ReviewStatus.updateSuccess && current.status == ReviewStatus.updateSuccess) ||
+              (previous.status != ReviewStatus.deleteSuccess && current.status == ReviewStatus.deleteSuccess),
+          listener: (context, state) {
+            // Refresh reviews list immediately
+            _fetchReviews();
+            // Refresh business data to get updated average rating and review count
+            context.read<BusinessBloc>().add(BusinessFetchByIdRequested(_currentBusiness.id));
+          },
+        ),
+        BlocListener<BusinessBloc, BusinessState>(
+          listenWhen: (previous, current) => current.status == BusinessBlocStatus.success,
+          listener: (context, state) {
+            final updatedBusiness = state.businesses.firstWhere(
+              (b) => b.id == _currentBusiness.id,
+              orElse: () => _currentBusiness,
             );
-          }
-        },
-        child: Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              _buildAppBar(context),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildQuickActions(),
-                      const SizedBox(height: 24),
-                      const BannerAdWidget(),
-                      const SizedBox(height: 16),
-                      _buildPromosAndOffers(),
-                      const SizedBox(height: 16),
-                      _buildSectionTitle(context, 'About the Business'),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.business.description,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey[700],
-                              height: 1.5,
-                            ),
-                      ),
-                      const SizedBox(height: 32),
-                      _buildSectionTitle(context, 'Contact Information'),
-                      const SizedBox(height: 16),
-                      _buildContactTile(
-                        context,
-                        icon: Icons.phone_rounded,
-                        title: 'Phone',
-                        subtitle: widget.business.phoneNumber,
-                        onTap: () => _launchUrl('tel:${widget.business.phoneNumber}'),
-                      ),
+            if (updatedBusiness != _currentBusiness) {
+              setState(() {
+                _currentBusiness = updatedBusiness;
+              });
+            }
+          },
+        ),
+        BlocListener<ReviewBloc, ReviewState>(
+          listenWhen: (previous, current) => current.status == ReviewStatus.failure,
+          listener: (context, state) {
+            if (state.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Review Error: ${state.error}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            _buildAppBar(context),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildQuickActions(),
+                    const SizedBox(height: 24),
+                    const BannerAdWidget(),
+                    const SizedBox(height: 16),
+                    _buildPromosAndOffers(),
+                    const SizedBox(height: 16),
+                    _buildSectionTitle(context, 'About the Business'),
+                    const SizedBox(height: 12),
+                    Text(
+                      _currentBusiness.description,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey[700],
+                            height: 1.5,
+                          ),
+                    ),
+                    const SizedBox(height: 32),
+                    _buildSectionTitle(context, 'Contact Information'),
+                    const SizedBox(height: 16),
+                    _buildContactTile(
+                      context,
+                      icon: Icons.phone_rounded,
+                      title: 'Phone',
+                      subtitle: _currentBusiness.phoneNumber,
+                      onTap: () => _launchUrl('tel:${_currentBusiness.phoneNumber}'),
+                    ),
+                    if (_currentBusiness.whatsappNumber.isNotEmpty)
                       _buildContactTile(
                         context,
                         icon: Icons.chat_rounded,
                         title: 'WhatsApp',
-                        subtitle: widget.business.whatsappNumber,
-                        onTap: () => _launchUrl('https://wa.me/${widget.business.whatsappNumber.replaceAll('+', '')}'),
+                        subtitle: _currentBusiness.whatsappNumber,
+                        onTap: () => _launchUrl('https://wa.me/${_currentBusiness.whatsappNumber.replaceAll('+', '').replaceAll(' ', '')}'),
                         color: Colors.green,
                       ),
+                    _buildContactTile(
+                      context,
+                      icon: Icons.email_rounded,
+                      title: 'Email',
+                      subtitle: _currentBusiness.email,
+                      onTap: () => _launchUrl('mailto:${_currentBusiness.email}'),
+                      color: Colors.redAccent,
+                    ),
+                    if (_currentBusiness.instagramUrl != null && _currentBusiness.instagramUrl!.isNotEmpty)
                       _buildContactTile(
                         context,
-                        icon: Icons.email_rounded,
-                        title: 'Email',
-                        subtitle: widget.business.email,
-                        onTap: () => _launchUrl('mailto:${widget.business.email}'),
-                        color: Colors.redAccent,
+                        icon: Icons.camera_alt_rounded,
+                        title: 'Instagram',
+                        subtitle: 'View Profile',
+                        onTap: () => _launchUrl(_currentBusiness.instagramUrl!),
+                        color: Colors.purple,
                       ),
-                      if (widget.business.instagramUrl != null && widget.business.instagramUrl!.isNotEmpty)
-                        _buildContactTile(
-                          context,
-                          icon: Icons.camera_alt_rounded,
-                          title: 'Instagram',
-                          subtitle: 'View Profile',
-                          onTap: () => _launchUrl(widget.business.instagramUrl!),
-                          color: Colors.purple,
-                        ),
-                      if (widget.business.facebookUrl != null && widget.business.facebookUrl!.isNotEmpty)
-                        _buildContactTile(
-                          context,
-                          icon: Icons.facebook_rounded,
-                          title: 'Facebook',
-                          subtitle: 'View Page',
-                          onTap: () => _launchUrl(widget.business.facebookUrl!),
-                          color: Colors.blueAccent,
-                        ),
-                      if (widget.business.websiteUrl != null && widget.business.websiteUrl!.isNotEmpty)
-                        _buildContactTile(
-                          context,
-                          icon: Icons.language_rounded,
-                          title: 'Website',
-                          subtitle: widget.business.websiteUrl!,
-                          onTap: () => _launchUrl(widget.business.websiteUrl!),
-                          color: Colors.blueGrey,
-                        ),
-                      const SizedBox(height: 32),
-                      _buildReviewsSection(),
-                      const SizedBox(height: 32),
-                      _buildSectionTitle(context, 'Location'),
-                      const SizedBox(height: 16),
-                      Card(
-                        elevation: 0,
-                        color: Colors.grey[50],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.grey[200]!),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.location_on_rounded, color: Theme.of(context).primaryColor),
+                    if (_currentBusiness.facebookUrl != null && _currentBusiness.facebookUrl!.isNotEmpty)
+                      _buildContactTile(
+                        context,
+                        icon: Icons.facebook_rounded,
+                        title: 'Facebook',
+                        subtitle: 'View Page',
+                        onTap: () => _launchUrl(_currentBusiness.facebookUrl!),
+                        color: Colors.blueAccent,
+                      ),
+                    if (_currentBusiness.websiteUrl != null && _currentBusiness.websiteUrl!.isNotEmpty)
+                      _buildContactTile(
+                        context,
+                        icon: Icons.language_rounded,
+                        title: 'Website',
+                        subtitle: _currentBusiness.websiteUrl!,
+                        onTap: () => _launchUrl(_currentBusiness.websiteUrl!),
+                        color: Colors.blueGrey,
+                      ),
+                    const SizedBox(height: 12),
+                    _buildReviewsSection(),
+                    const SizedBox(height: 12),
+                    _buildSectionTitle(context, 'Location'),
+                    const SizedBox(height: 16),
+                    Card(
+                      elevation: 0,
+                      color: Colors.grey[50],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.grey[200]!),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.business.location,
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      '${widget.business.city}, ${widget.business.country} - ${widget.business.zipcode}',
-                                      style: TextStyle(color: Colors.grey[600]),
-                                    ),
-                                  ],
-                                ),
+                              child: Icon(Icons.location_on_rounded, color: Theme.of(context).primaryColor),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _currentBusiness.location,
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    '${_currentBusiness.city}, ${_currentBusiness.country} - ${_currentBusiness.zipcode}',
+                                    style: TextStyle(color: Colors.grey[600]),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _openMaps,
-                          icon: const Icon(Icons.directions_rounded),
-                          label: const Text('Get Directions'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _openMaps,
+                        icon: const Icon(Icons.directions_rounded),
+                        label: const Text('Get Directions'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

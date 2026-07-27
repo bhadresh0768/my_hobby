@@ -26,18 +26,59 @@ class Review {
   });
 
   factory Review.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+    try {
+      Map data = doc.data() as Map<String, dynamic>;
+      return Review(
+        id: doc.id,
+        businessId: data['businessId'] ?? '',
+        userId: data['userId'] ?? '',
+        userName: data['userName'] ?? 'Anonymous',
+        userPhotoUrl: data['userPhotoUrl'],
+        rating: (data['rating'] ?? 0.0).toDouble(),
+        comment: data['comment'] ?? '',
+        createdAt: data['createdAt'] != null
+            ? (data['createdAt'] as Timestamp).toDate()
+            : DateTime.now(),
+        ownerReply: data['ownerReply'],
+        ownerReplyAt: data['ownerReplyAt'] != null ? (data['ownerReplyAt'] as Timestamp).toDate() : null,
+      );
+    } catch (e) {
+      // Create a dummy review to avoid crashing the list, but log the error
+      return Review(
+        id: doc.id,
+        businessId: '',
+        userId: '',
+        userName: 'Error Loading Review',
+        rating: 0,
+        comment: 'This review could not be loaded: $e',
+        createdAt: DateTime.now(),
+      );
+    }
+  }
+
+  Review copyWith({
+    String? id,
+    String? businessId,
+    String? userId,
+    String? userName,
+    String? userPhotoUrl,
+    double? rating,
+    String? comment,
+    DateTime? createdAt,
+    String? ownerReply,
+    DateTime? ownerReplyAt,
+  }) {
     return Review(
-      id: doc.id,
-      businessId: data['businessId'] ?? '',
-      userId: data['userId'] ?? '',
-      userName: data['userName'] ?? 'Anonymous',
-      userPhotoUrl: data['userPhotoUrl'],
-      rating: (data['rating'] ?? 0.0).toDouble(),
-      comment: data['comment'] ?? '',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      ownerReply: data['ownerReply'],
-      ownerReplyAt: data['ownerReplyAt'] != null ? (data['ownerReplyAt'] as Timestamp).toDate() : null,
+      id: id ?? this.id,
+      businessId: businessId ?? this.businessId,
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      userPhotoUrl: userPhotoUrl ?? this.userPhotoUrl,
+      rating: rating ?? this.rating,
+      comment: comment ?? this.comment,
+      createdAt: createdAt ?? this.createdAt,
+      ownerReply: ownerReply ?? this.ownerReply,
+      ownerReplyAt: ownerReplyAt ?? this.ownerReplyAt,
     );
   }
 

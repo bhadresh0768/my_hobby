@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../common/models/business_model.dart';
 import '../../../core/repositories/business_repository.dart';
 import 'business_event.dart';
 import 'business_state.dart';
@@ -14,6 +15,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     on<BusinessUpdateRequested>(_onUpdateRequested);
     on<BusinessFetchRequested>(_onFetchRequested);
     on<BusinessLoadMoreRequested>(_onLoadMoreRequested);
+    on<BusinessFetchByIdRequested>(_onFetchByIdRequested);
     on<BusinessFetchMyBusinessesRequested>(_onFetchMyBusinessesRequested);
     on<BusinessDeleteRequested>(_onDeleteRequested);
     on<BusinessUpdated>(_onUpdated);
@@ -104,6 +106,25 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       ));
     } catch (e) {
       emit(state.copyWith(isFetchingMore: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onFetchByIdRequested(
+      BusinessFetchByIdRequested event, Emitter<BusinessState> emit) async {
+    try {
+      final business = await _businessRepository.getBusiness(event.id);
+      if (business != null) {
+        final businesses = List<Business>.from(state.businesses);
+        final index = businesses.indexWhere((b) => b.id == event.id);
+        if (index != -1) {
+          businesses[index] = business;
+        } else {
+          businesses.add(business);
+        }
+        emit(state.copyWith(status: BusinessBlocStatus.success, businesses: businesses));
+      }
+    } catch (e) {
+      emit(state.copyWith(status: BusinessBlocStatus.error, errorMessage: e.toString()));
     }
   }
 

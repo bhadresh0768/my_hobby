@@ -54,6 +54,13 @@ class BusinessFetchMyBusinessesRequested extends BusinessEvent {
   List<Object?> get props => [ownerId];
 }
 
+class BusinessFetchByIdRequested extends BusinessEvent {
+  final String id;
+  BusinessFetchByIdRequested(this.id);
+  @override
+  List<Object?> get props => [id];
+}
+
 class BusinessDeleteRequested extends BusinessEvent {
   final String id;
   BusinessDeleteRequested(this.id);

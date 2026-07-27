@@ -6,7 +6,8 @@ class ReviewRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> addReview(Review review) async {
-    final businessRef = _firestore.collection(AppConstants.businessesCollection).doc(review.businessId);
+    final businessId = review.businessId.trim();
+    final businessRef = _firestore.collection(AppConstants.businessesCollection).doc(businessId);
     final reviewRef = businessRef.collection('reviews').doc();
 
     await _firestore.runTransaction((transaction) async {
@@ -23,7 +24,10 @@ class ReviewRepository {
       final double newAverageRating =
           ((currentAverageRating * currentTotalReviews) + review.rating) / newTotalReviews;
 
-      transaction.set(reviewRef, review.toFirestore());
+      // Use the generated reviewRef.id for the Review object's internal ID
+      final reviewData = review.copyWith(id: reviewRef.id, businessId: businessId).toFirestore();
+
+      transaction.set(reviewRef, reviewData);
       transaction.update(businessRef, {
         'averageRating': newAverageRating,
         'totalReviews': newTotalReviews,
@@ -32,8 +36,9 @@ class ReviewRepository {
   }
 
   Future<void> updateReview(Review oldReview, Review newReview) async {
-    final businessRef = _firestore.collection(AppConstants.businessesCollection).doc(newReview.businessId);
-    final reviewRef = businessRef.collection('reviews').doc(newReview.id);
+    final businessId = newReview.businessId.trim();
+    final businessRef = _firestore.collection(AppConstants.businessesCollection).doc(businessId);
+    final reviewRef = businessRef.collection('reviews').doc(newReview.id.trim());
 
     await _firestore.runTransaction((transaction) async {
       final businessSnapshot = await transaction.get(businessRef);
@@ -49,7 +54,9 @@ class ReviewRepository {
       final double newAverageRating =
           ((currentAverageRating * currentTotalReviews) - oldReview.rating + newReview.rating) / currentTotalReviews;
 
-      transaction.update(reviewRef, newReview.toFirestore());
+      final reviewData = newReview.copyWith(businessId: businessId).toFirestore();
+
+      transaction.update(reviewRef, reviewData);
       transaction.update(businessRef, {
         'averageRating': newAverageRating,
       });
@@ -57,8 +64,9 @@ class ReviewRepository {
   }
 
   Future<void> deleteReview(Review review) async {
-    final businessRef = _firestore.collection(AppConstants.businessesCollection).doc(review.businessId);
-    final reviewRef = businessRef.collection('reviews').doc(review.id);
+    final businessId = review.businessId.trim();
+    final businessRef = _firestore.collection(AppConstants.businessesCollection).doc(businessId);
+    final reviewRef = businessRef.collection('reviews').doc(review.id.trim());
 
     await _firestore.runTransaction((transaction) async {
       final businessSnapshot = await transaction.get(businessRef);
