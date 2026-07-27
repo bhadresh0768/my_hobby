@@ -13,6 +13,8 @@ import 'auth/login_screen.dart';
 import 'auth/edit_profile_screen.dart';
 import 'business/my_businesses_screen.dart';
 import 'user/my_claims_screen.dart';
+import '../bloc/promo/promo_bloc.dart';
+import '../bloc/promo/promo_event.dart';
 import '../bloc/locale/locale_cubit.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -273,6 +275,7 @@ class _ProfileWrapper extends StatelessWidget {
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: Text(AppLocalizations.of(context)!.logout),
                   onTap: () {
+                    context.read<PromoBloc>().add(PromoLogoutRequested());
                     context.read<AuthBloc>().add(AuthSignOutRequested());
                   },
                 ),

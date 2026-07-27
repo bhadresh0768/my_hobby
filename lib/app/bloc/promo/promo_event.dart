@@ -42,7 +42,8 @@ class UserClaimsLoadRequested extends PromoEvent {
 
 class PromoClaimsLoadRequested extends PromoEvent {
   final String promoId;
-  PromoClaimsLoadRequested(this.promoId);
+  final String businessId;
+  PromoClaimsLoadRequested(this.promoId, this.businessId);
 }
 
 class PromoCancelRequested extends PromoEvent {
@@ -79,3 +80,5 @@ class PromoImageDeleteRequested extends PromoEvent {
   final String imageUrl;
   PromoImageDeleteRequested(this.imageUrl);
 }
+
+class PromoLogoutRequested extends PromoEvent {}

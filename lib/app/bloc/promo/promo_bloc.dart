@@ -30,6 +30,7 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
     on<PromoCancelRequested>(_onPromoCancelRequested);
     on<PromoRedeemRequested>(_onPromoRedeemRequested);
     on<PromoImageDeleteRequested>(_onImageDeleteRequested);
+    on<PromoLogoutRequested>(_onLogoutRequested);
     on<_PromoErrorOccurred>(_onPromoErrorOccurred);
     on<_PromoListUpdated>(_onPromoListUpdated);
     on<_OfferListUpdated>(_onOfferListUpdated);
@@ -101,7 +102,7 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
   Future<void> _onPromoClaimsLoadRequested(PromoClaimsLoadRequested event, Emitter<PromoState> emit) async {
     emit(state.copyWith(status: PromoStatus.loading));
     await _promoClaimsSubscription?.cancel();
-    _promoClaimsSubscription = _promoRepository.getClaimsForPromo(event.promoId).listen((claims) {
+    _promoClaimsSubscription = _promoRepository.getClaimsForPromo(event.promoId, event.businessId).listen((claims) {
       add(_PromoClaimsUpdated(claims));
     });
   }
@@ -274,6 +275,14 @@ class PromoBloc extends Bloc<PromoEvent, PromoState> {
     } catch (e) {
       debugPrint('Error deleting image via Bloc: $e');
     }
+  }
+
+  Future<void> _onLogoutRequested(PromoLogoutRequested event, Emitter<PromoState> emit) async {
+    await _promosSubscription?.cancel();
+    await _offersSubscription?.cancel();
+    await _userClaimsSubscription?.cancel();
+    await _promoClaimsSubscription?.cancel();
+    emit(PromoState()); // Reset to initial state
   }
 
   @override

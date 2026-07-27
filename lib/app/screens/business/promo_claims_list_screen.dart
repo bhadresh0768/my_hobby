@@ -23,7 +23,7 @@ class _PromoClaimsListScreenState extends State<PromoClaimsListScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<PromoBloc>().add(PromoClaimsLoadRequested(widget.promo.id));
+    context.read<PromoBloc>().add(PromoClaimsLoadRequested(widget.promo.id, widget.promo.businessId));
   }
 
   @override

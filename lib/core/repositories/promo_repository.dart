@@ -112,10 +112,11 @@ class PromoRepository {
         .update({'status': 'redeemed', 'redeemedAt': FieldValue.serverTimestamp()});
   }
 
-  Stream<List<Map<String, dynamic>>> getClaimsForPromo(String promoId) {
+  Stream<List<Map<String, dynamic>>> getClaimsForPromo(String promoId, String businessId) {
     return _firestore
         .collection(AppConstants.claimsCollection)
         .where('promoId', isEqualTo: promoId)
+        .where('businessId', isEqualTo: businessId)
         .snapshots()
         .map((snapshot) {
       final claims = snapshot.docs.map((doc) => {...doc.data(), 'id': doc.id}).toList();
