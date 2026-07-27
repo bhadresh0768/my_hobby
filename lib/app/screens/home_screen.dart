@@ -136,7 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   final currentUserId = authState.user?.uid;
                   return BlocBuilder<BusinessBloc, bloc_state.BusinessState>(
                     builder: (context, state) {
-                      if (state.status == bloc_state.BusinessBlocStatus.loading) {
+                      if (state.status == bloc_state.BusinessBlocStatus.initial ||
+                          state.status == bloc_state.BusinessBlocStatus.loading) {
                         return const Center(child: CircularProgressIndicator());
                       }
                       
