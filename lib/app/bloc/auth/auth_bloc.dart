@@ -17,6 +17,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthCodeSent>(_onCodeSent);
     on<AuthVerificationFailed>(_onVerificationFailed);
     on<AuthOtpSubmitted>(_onOtpSubmitted);
+    on<AuthRegistrationCompleted>(_onRegistrationCompleted);
     on<AuthSignInAnonymouslyRequested>(_onSignInAnonymouslyRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthAccountDeletionRequested>(_onAccountDeletionRequested);
@@ -69,12 +70,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       AuthPhoneVerificationRequested event, Emitter<AuthState> emit) async {
     emit(state.copyWith(status: AuthStatus.loading, phoneNumber: event.phoneNumber));
     try {
-      final bool exists = await _authRepository.checkIfUserExists(event.phoneNumber);
-
       await _authRepository.verifyPhoneNumber(
         phoneNumber: event.phoneNumber,
         onCodeSent: (verificationId, resendToken) {
-          add(AuthCodeSent(verificationId, resendToken, !exists));
+          add(AuthCodeSent(verificationId, resendToken, false));
         },
         onVerificationFailed: (e) {
           add(AuthVerificationFailed(e.message ?? 'Verification Failed'));
@@ -106,20 +105,42 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final userCredential = await _authRepository.signInWithOtp(
         verificationId: event.verificationId,
         smsCode: event.smsCode,
+      );
+      
+      if (userCredential.user != null) {
+        final userData = await _authRepository.getUserData(userCredential.user!.uid);
+        if (userData == null) {
+          emit(state.copyWith(
+            status: AuthStatus.needsRegistration,
+            registrationUid: userCredential.user!.uid,
+          ));
+        } else {
+          emit(state.copyWith(
+            status: AuthStatus.authenticated,
+            user: userData,
+            isGuest: false,
+          ));
+        }
+      }
+    } catch (e) {
+      emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onRegistrationCompleted(AuthRegistrationCompleted event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+    try {
+      final user = await _authRepository.registerUser(
+        uid: event.uid,
+        phoneNumber: state.phoneNumber ?? '',
         name: event.name,
         role: event.role,
       );
-      
-      // Explicitly fetch user data after sign-in to ensure BLoC state is complete
-      // and to avoid race conditions with the auth state stream.
-      if (userCredential.user != null) {
-        final userData = await _authRepository.getUserData(userCredential.user!.uid);
-        emit(state.copyWith(
-          status: AuthStatus.authenticated,
-          user: userData,
-          isGuest: false,
-        ));
-      }
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: user,
+        isGuest: false,
+      ));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
     }

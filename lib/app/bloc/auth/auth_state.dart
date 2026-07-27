@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../common/models/user_model.dart';
 
-enum AuthStatus { initial, authenticated, unauthenticated, loading, codeSent, error }
+enum AuthStatus { initial, authenticated, unauthenticated, loading, codeSent, needsRegistration, error }
 
 class AuthState extends Equatable {
   final AuthStatus status;
@@ -9,6 +9,7 @@ class AuthState extends Equatable {
   final String? verificationId;
   final String? errorMessage;
   final String? phoneNumber;
+  final String? registrationUid; // Add this
   final bool isGuest;
   final bool? isNewUser; // Add this
 
@@ -18,6 +19,7 @@ class AuthState extends Equatable {
     this.verificationId,
     this.errorMessage,
     this.phoneNumber,
+    this.registrationUid,
     this.isGuest = false,
     this.isNewUser,
   });
@@ -28,6 +30,7 @@ class AuthState extends Equatable {
     String? verificationId,
     String? errorMessage,
     String? phoneNumber,
+    String? registrationUid,
     bool? isGuest,
     bool? isNewUser,
   }) {
@@ -37,11 +40,12 @@ class AuthState extends Equatable {
       verificationId: verificationId ?? this.verificationId,
       errorMessage: errorMessage ?? this.errorMessage,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      registrationUid: registrationUid ?? this.registrationUid,
       isGuest: isGuest ?? this.isGuest,
       isNewUser: isNewUser ?? this.isNewUser,
     );
   }
 
   @override
-  List<Object?> get props => [status, user, verificationId, errorMessage, phoneNumber, isGuest, isNewUser];
+  List<Object?> get props => [status, user, verificationId, errorMessage, phoneNumber, registrationUid, isGuest, isNewUser];
 }

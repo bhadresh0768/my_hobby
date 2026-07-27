@@ -54,85 +54,93 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Text(
-                  'Enter the code sent to ${widget.phoneNumber}',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _otpController,
-                  decoration: const InputDecoration(
-                    labelText: '6-Digit OTP',
-                    prefixIcon: Icon(Icons.security),
-                  ),
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  validator: (value) => Validators.validateRequired(value, 'OTP'),
-                ),
-                if (widget.isNewUser) ...[
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              return Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    Text(
+                      'Enter the code sent to ${widget.phoneNumber}',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
-                    validator: (value) => Validators.validateRequired(value, 'Name'),
-                  ),
-                  const SizedBox(height: 24),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Login as:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<UserRole>(
-                          title: const Text('Customer'),
-                          value: UserRole.customer,
-                          groupValue: _selectedRole,
-                          onChanged: (value) => setState(() => _selectedRole = value!),
-                        ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _otpController,
+                      decoration: const InputDecoration(
+                        labelText: '6-Digit OTP',
+                        prefixIcon: Icon(Icons.security),
                       ),
-                      Expanded(
-                        child: RadioListTile<UserRole>(
-                          title: const Text('Business'),
-                          value: UserRole.businessOwner,
-                          groupValue: _selectedRole,
-                          onChanged: (value) => setState(() => _selectedRole = value!),
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      validator: (value) => Validators.validateRequired(value, 'OTP'),
+                    ),
+                    if (state.status == AuthStatus.needsRegistration) ...[
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Full Name',
+                          prefixIcon: Icon(Icons.person),
                         ),
+                        validator: (value) => Validators.validateRequired(value, 'Name'),
+                      ),
+                      const SizedBox(height: 24),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Login as:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: RadioListTile<UserRole>(
+                              title: const Text('Customer'),
+                              value: UserRole.customer,
+                              groupValue: _selectedRole,
+                              onChanged: (value) => setState(() => _selectedRole = value!),
+                            ),
+                          ),
+                          Expanded(
+                            child: RadioListTile<UserRole>(
+                              title: const Text('Business'),
+                              value: UserRole.businessOwner,
+                              groupValue: _selectedRole,
+                              onChanged: (value) => setState(() => _selectedRole = value!),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
-                const SizedBox(height: 32),
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return CustomButton(
-                      text: 'Verify & Login',
+                    const SizedBox(height: 32),
+                    CustomButton(
+                      text: state.status == AuthStatus.needsRegistration ? 'Register' : 'Verify & Login',
                       isLoading: state.status == AuthStatus.loading,
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          context.read<AuthBloc>().add(
-                                AuthOtpSubmitted(
-                                  verificationId: widget.verificationId,
-                                  smsCode: _otpController.text.trim(),
-                                  name: widget.isNewUser ? _nameController.text.trim() : '',
-                                  role: widget.isNewUser ? _selectedRole : UserRole.customer,
-                                ),
-                              );
+                          if (state.status == AuthStatus.needsRegistration) {
+                            context.read<AuthBloc>().add(
+                                  AuthRegistrationCompleted(
+                                    uid: state.registrationUid ?? '',
+                                    name: _nameController.text.trim(),
+                                    role: _selectedRole,
+                                  ),
+                                );
+                          } else {
+                            context.read<AuthBloc>().add(
+                                  AuthOtpSubmitted(
+                                    verificationId: widget.verificationId,
+                                    smsCode: _otpController.text.trim(),
+                                  ),
+                                );
+                          }
                         }
                       },
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

@@ -23,18 +23,29 @@ class AuthPhoneVerificationRequested extends AuthEvent {
 class AuthOtpSubmitted extends AuthEvent {
   final String verificationId;
   final String smsCode;
-  final String name;
-  final UserRole role;
   
   AuthOtpSubmitted({
     required this.verificationId,
     required this.smsCode,
-    required this.name,
-    required this.role,
   });
   
   @override
-  List<Object?> get props => [verificationId, smsCode, name, role];
+  List<Object?> get props => [verificationId, smsCode];
+}
+
+class AuthRegistrationCompleted extends AuthEvent {
+  final String uid;
+  final String name;
+  final UserRole role;
+
+  AuthRegistrationCompleted({
+    required this.uid,
+    required this.name,
+    required this.role,
+  });
+
+  @override
+  List<Object?> get props => [uid, name, role];
 }
 
 class AuthCodeSent extends AuthEvent {

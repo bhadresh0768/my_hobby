@@ -61,35 +61,35 @@ class AuthRepository {
   Future<UserCredential> signInWithOtp({
     required String verificationId,
     required String smsCode,
-    required String name,
-    required UserRole role,
   }) async {
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
       verificationId: verificationId,
       smsCode: smsCode,
     );
     
-    final userCredential = await _auth.signInWithCredential(credential);
+    return await _auth.signInWithCredential(credential);
+  }
 
-    if (userCredential.user != null) {
-      // Check if user already exists in Firestore
-      final doc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
-      if (!doc.exists) {
-        final userModel = UserModel(
-          uid: userCredential.user!.uid,
-          phoneNumber: userCredential.user!.phoneNumber,
-          displayName: name,
-          role: role,
-          createdAt: DateTime.now(),
-        );
+  Future<UserModel> registerUser({
+    required String uid,
+    required String phoneNumber,
+    required String name,
+    required UserRole role,
+  }) async {
+    final userModel = UserModel(
+      uid: uid,
+      phoneNumber: phoneNumber,
+      displayName: name,
+      role: role,
+      createdAt: DateTime.now(),
+    );
 
-        await _firestore
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set(userModel.toFirestore());
-      }
-    }
-    return userCredential;
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .set(userModel.toFirestore());
+        
+    return userModel;
   }
 
   Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
