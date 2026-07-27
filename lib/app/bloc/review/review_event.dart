@@ -38,3 +38,8 @@ class ReviewsUpdated extends ReviewEvent {
   final List<Review> reviews;
   ReviewsUpdated(this.reviews);
 }
+
+class ReviewErrorOccurred extends ReviewEvent {
+  final String errorMessage;
+  ReviewErrorOccurred(this.errorMessage);
+}

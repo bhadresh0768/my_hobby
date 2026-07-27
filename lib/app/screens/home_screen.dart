@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../l10n/app_localizations.dart';
 import '../../common/widgets/business_card.dart';
@@ -15,6 +13,9 @@ import '../bloc/business/business_state.dart' as bloc_state;
 import 'business/business_registration_screen.dart';
 import 'business/business_details_screen.dart';
 import '../../common/utils/location_helper.dart';
+import '../widgets/banner_ad_widget.dart';
+import '../widgets/native_ad_widget.dart';
+import '../utils/interstitial_ad_manager.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,16 +29,17 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'All';
   String _selectedSortBy = 'newest';
   bool _isGridView = false;
+  final InterstitialAdManager _interstitialAdManager = InterstitialAdManager();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _initializeData();
+    _interstitialAdManager.loadInterstitialAd();
   }
 
   Future<void> _initializeData() async {
-    final businessBloc = context.read<BusinessBloc>();
     
     // 1. Get current location and city
     final position = await LocationHelper.getCurrentLocation(context);
@@ -48,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // 2. Fetch businesses for the detected city (or global if not found)
-    if (context.mounted) {
-      businessBloc.add(BusinessFetchRequested(
+    if (mounted) {
+      context.read<BusinessBloc>().add(BusinessFetchRequested(
         city: detectedCity,
         sortBy: 'newest',
       ));
@@ -59,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _interstitialAdManager.dispose();
     super.dispose();
   }
 
@@ -126,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _buildSearchBar(l10n),
             _buildCategoryFilters(),
+            const BannerAdWidget(),
             Expanded(
               child: BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, authState) {
@@ -294,25 +298,37 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.all(16),
-        itemCount: businesses.length + (state.isFetchingMore ? 1 : 0),
+        itemCount: businesses.length + (businesses.length / 5).floor() + (state.isFetchingMore ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index < businesses.length) {
+          // Adjust index for ad injection every 5 items
+          if (index != 0 && index % 6 == 5) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: NativeAdWidget(),
+            );
+          }
+
+          final int businessIndex = index - (index / 6).floor();
+
+          if (businessIndex < businesses.length) {
             return BusinessCard(
-              business: businesses[index],
+              business: businesses[businessIndex],
               onTap: () {
+                _interstitialAdManager.showInterstitialAd(context);
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => BusinessDetailsScreen(business: businesses[index]),
+                    builder: (_) => BusinessDetailsScreen(business: businesses[businessIndex]),
                   ),
                 );
               },
             );
-          } else {
+          } else if (state.isFetchingMore && index == businesses.length + (businesses.length / 5).floor()) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
               child: Center(child: CircularProgressIndicator()),
             );
           }
+          return const SizedBox.shrink();
         },
       ),
     );

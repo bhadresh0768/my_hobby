@@ -38,10 +38,14 @@ Business Diary is a global, cloud-powered business directory designed to connect
 *   **Clean Architecture**: Modular folder structure (`common/`, `app/`, `admin/`) for easy maintenance.
 
 ### Backend (Firebase)
-*   **Cloud Firestore**: Real-time global database with ACID transactions for promo counting.
+*   **Cloud Firestore**: Real-time global database with role-based security rules for data protection.
 *   **Firebase Auth**: Secure login for owners/admins and anonymous access for guests.
-*   **Cloud Storage**: High-speed hosting for business logos and product photos.
+*   **Cloud Storage**: High-speed hosting for images with secure access controls.
 *   **Push Notifications (FCM)**: Real-time alerts for new offers and verification updates.
+
+### Monetization & Scalability
+*   **AdMob Integration**: Google Mobile Ads (v9.0.0) integrated with Banner, Interstitial (Guest-only), and Native ads.
+*   **Next-Gen SDK**: Optimized for performance and reduced app size on Android.
 
 ### User Interface
 *   **Material 3 Design**: Utilizing the latest UI principles from Google.

@@ -20,6 +20,7 @@ import 'widgets/add_review_dialog.dart';
 import 'widgets/reply_review_dialog.dart';
 import 'widgets/expandable_description.dart';
 import 'full_screen_image_viewer.dart';
+import '../../widgets/banner_ad_widget.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
   final Business business;
@@ -117,9 +118,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildQuickActions(),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+                      const BannerAdWidget(),
+                      const SizedBox(height: 16),
                       _buildPromosAndOffers(),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
                       _buildSectionTitle(context, 'About the Business'),
                       const SizedBox(height: 12),
                       Text(
@@ -239,6 +242,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
                       const SizedBox(height: 40),
                     ],
                   ),

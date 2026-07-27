@@ -17,6 +17,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
     on<ReviewDeleteRequested>(_onDeleteRequested);
     on<ReviewReplyAdded>(_onReplyAdded);
     on<ReviewsUpdated>(_onReviewsUpdated);
+    on<ReviewErrorOccurred>(_onErrorOccurred);
   }
 
   Future<void> _onFetchRequested(ReviewFetchRequested event, Emitter<ReviewState> emit) async {
@@ -24,6 +25,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
     await _reviewsSubscription?.cancel();
     _reviewsSubscription = _reviewRepository.getReviews(event.businessId).listen(
       (reviews) => add(ReviewsUpdated(reviews)),
+      onError: (error) => add(ReviewErrorOccurred(error.toString())),
     );
   }
 
@@ -67,6 +69,10 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
 
   void _onReviewsUpdated(ReviewsUpdated event, Emitter<ReviewState> emit) {
     emit(state.copyWith(status: ReviewStatus.success, reviews: event.reviews));
+  }
+
+  void _onErrorOccurred(ReviewErrorOccurred event, Emitter<ReviewState> emit) {
+    emit(state.copyWith(status: ReviewStatus.failure, error: event.errorMessage));
   }
 
   @override

@@ -284,33 +284,40 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                 controlsBuilder: (context, details) {
                   final bool isLastStep = _currentStep == 3;
                   final String actionText = isEdit ? 'Update' : 'Register';
-                  
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _isUploading ? null : details.onStepContinue,
-                          child: _isUploading && isLastStep
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Text(isLastStep ? actionText : 'Continue'),
+
+                  return BlocBuilder<BusinessBloc, bloc_state.BusinessState>(
+                    builder: (context, state) {
+                      final bool isSubmitting = state.status == bloc_state.BusinessBlocStatus.loading;
+                      final bool isLoading = _isUploading || isSubmitting;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: isLoading ? null : details.onStepContinue,
+                              child: isLoading && isLastStep
+                                  ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                                  : Text(isLastStep ? actionText : 'Continue'),
+                            ),
+                            if (_currentStep > 0) ...[
+                              const SizedBox(width: 12),
+                              TextButton(
+                                onPressed: isLoading ? null : details.onStepCancel,
+                                child: const Text('Back'),
+                              ),
+                            ],
+                          ],
                         ),
-                        if (_currentStep > 0) ...[
-                          const SizedBox(width: 12),
-                          TextButton(
-                            onPressed: _isUploading ? null : details.onStepCancel,
-                            child: const Text('Back'),
-                          ),
-                        ],
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
                 steps: [
@@ -471,6 +478,8 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
                         TextFormField(
                           controller: _addressController,
                           decoration: const InputDecoration(labelText: 'Full Address'),
+                          maxLines: 3,
+                          minLines: 1,
                           validator: (value) => Validators.validateRequired(value, 'Address'),
                         ),
                         const SizedBox(height: 16),
@@ -568,12 +577,12 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
               ),
             ),
           ),
-          if (_isUploading)
+          if (_isUploading || context.watch<BusinessBloc>().state.status == bloc_state.BusinessBlocStatus.loading)
             const ModalBarrier(
               dismissible: false,
               color: Colors.black54,
             ),
-          if (_isUploading)
+          if (_isUploading || context.watch<BusinessBloc>().state.status == bloc_state.BusinessBlocStatus.loading)
             const Center(
               child: CircularProgressIndicator(),
             ),
@@ -585,38 +594,60 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
   Future<void> _submitForm() async {
     if (_isUploading) return;
 
-    if (_formKey.currentState!.validate()) {
-      if (_latitude == null || _longitude == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please pin your business location on the map')),
-        );
-        setState(() => _currentStep = 2); // Jump to Location step
-        return;
-      }
-      
-      if (_selectedCountry.isEmpty || _selectedCity == null || _selectedCity!.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select Country and City')),
-        );
-        return;
-      }
-      setState(() => _isUploading = true);
-      
-      final authState = context.read<AuthBloc>().state;
-      final businessBloc = context.read<BusinessBloc>(); // Capture Bloc here
-      if (authState.user == null) {
-        setState(() => _isUploading = false);
-        return;
-      }
+    // 1. Form Validation (Includes basic text fields)
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please correct the errors in the form')),
+      );
 
-      final businessId = widget.business?.id ?? const Uuid().v4();
-      final repository = context.read<BusinessRepository>();
+      // Determine which step has the error and jump to it
+      if (_nameController.text.isEmpty || _descriptionController.text.isEmpty) {
+        setState(() => _currentStep = 0);
+      } else if (_addressController.text.isEmpty || _zipcodeController.text.isEmpty) {
+        setState(() => _currentStep = 2);
+      } else if (_phoneController.text.isEmpty || _emailController.text.isEmpty) {
+        setState(() => _currentStep = 3);
+      }
+      return;
+    }
 
-      try {
-        // Upload new images
-        final uploadedUrls = await Future.wait(
+    // 2. Map Location Validation
+    if (_latitude == null || _longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please pin your business location on the map')),
+      );
+      setState(() => _currentStep = 2); // Jump to Location step
+      return;
+    }
+
+    // 3. Country/City Validation (CSC Picker)
+    if (_selectedCountry.isEmpty || _selectedCity == null || _selectedCity!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select Country and City in Location Details')),
+      );
+      setState(() => _currentStep = 2);
+      return;
+    }
+
+    // 4. Auth Check
+    final authState = context.read<AuthBloc>().state;
+    if (authState.user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Session expired. Please login again.')),
+      );
+      return;
+    }
+
+    setState(() => _isUploading = true);
+    final businessBloc = context.read<BusinessBloc>();
+    final businessId = widget.business?.id ?? const Uuid().v4();
+    final repository = context.read<BusinessRepository>();
+
+    try {
+      // Upload new images
+      final uploadedUrls = await Future.wait(
           _newImages.map((file) => repository.uploadBusinessImage(businessId, file))
-        );
+      );
 
         final business = Business(
           id: businessId,
@@ -689,4 +720,3 @@ class _BusinessRegistrationScreenState extends State<BusinessRegistrationScreen>
       }
     }
   }
-}
