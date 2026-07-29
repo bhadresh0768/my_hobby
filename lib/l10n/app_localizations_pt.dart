@@ -9,7 +9,7 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
-  String get appTitle => 'Diário de Negócios';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => 'Pesquisar empresas, produtos...';
@@ -21,7 +21,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get featuredOffers => 'Ofertas em Destaque';
 
   @override
-  String get registerBusiness => 'Registrar Empresa';
+  String get registerBusiness => 'Registrar Loja';
 
   @override
   String get login => 'Entrar';
@@ -90,7 +90,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get favorites => 'Favoritos';
 
   @override
-  String get myBusiness => 'Meu Negócio';
+  String get myBusiness => 'Minha Loja';
 
   @override
   String get logout => 'Sair';

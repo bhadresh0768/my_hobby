@@ -1,9 +1,9 @@
 {
-  "appTitle": "বিজনেস ডায়েরি",
+  "appTitle": "ShopFinder",
   "searchHint": "ব্যবসা, পণ্য খুঁজুন...",
   "categories": "বিভাগ",
   "featuredOffers": "সেরা অফার",
-  "registerBusiness": "ব্যবসা নিবন্ধন করুন",
+  "registerBusiness": "শপ নিবন্ধন করুন",
   "login": "লগইন",
   "guestUser": "অতিথি ব্যবহারকারী",
   "home": "হোম",
@@ -26,6 +26,6 @@
   "language": "ভাষা",
   "selectLanguage": "ভাষা নির্বাচন করুন",
   "favorites": "পছন্দসই",
-  "myBusiness": "আমার ব্যবসা",
+  "myBusiness": "আমার শপ",
   "logout": "লগআউট"
 }

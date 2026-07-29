@@ -1,9 +1,9 @@
 {
-  "appTitle": "बिजनेस डायरी",
+  "appTitle": "ShopFinder",
   "searchHint": "व्यवसाय, उत्पाद खोजें...",
   "categories": "श्रेणियां",
   "featuredOffers": "विशेष ऑफर्स",
-  "registerBusiness": "व्यवसाय पंजीकृत करें",
+  "registerBusiness": "शॉप पंजीकृत करें",
   "login": "लॉगिन करें",
   "guestUser": "अतिथि उपयोगकर्ता",
   "home": "होम",
@@ -26,6 +26,6 @@
   "language": "भाषा",
   "selectLanguage": "भाषा चुनें",
   "favorites": "पसंदीदा",
-  "myBusiness": "मेरा व्यवसाय",
+  "myBusiness": "मेरी शॉप",
   "logout": "लॉगआउट"
 }

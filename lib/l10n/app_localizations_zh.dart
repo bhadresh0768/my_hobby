@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => '商业日记';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => '搜索商家、产品...';
@@ -21,7 +21,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get featuredOffers => '精选优惠';
 
   @override
-  String get registerBusiness => '注册商家';
+  String get registerBusiness => '注册店铺';
 
   @override
   String get login => '登录';
@@ -90,7 +90,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get favorites => '收藏';
 
   @override
-  String get myBusiness => '我的商家';
+  String get myBusiness => '我的店铺';
 
   @override
   String get logout => '登出';

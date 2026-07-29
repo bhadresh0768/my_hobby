@@ -1,9 +1,9 @@
 {
-  "appTitle": "商业日记",
+  "appTitle": "ShopFinder",
   "searchHint": "搜索商家、产品...",
   "categories": "类别",
   "featuredOffers": "精选优惠",
-  "registerBusiness": "注册商家",
+  "registerBusiness": "注册店铺",
   "login": "登录",
   "guestUser": "游客",
   "home": "首页",
@@ -26,6 +26,6 @@
   "language": "语言",
   "selectLanguage": "选择语言",
   "favorites": "收藏",
-  "myBusiness": "我的商家",
+  "myBusiness": "我的店铺",
   "logout": "登出"
 }

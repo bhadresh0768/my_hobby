@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String appName = 'Business Diary';
+  static const String appName = 'ShopFinder';
   
   // Collections
   static const String businessesCollection = 'businesses';

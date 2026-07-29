@@ -9,7 +9,7 @@ class AppLocalizationsUr extends AppLocalizations {
   AppLocalizationsUr([String locale = 'ur']) : super(locale);
 
   @override
-  String get appTitle => 'بزنس ڈائری';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => 'کاروبار، مصنوعات تلاش کریں...';
@@ -21,7 +21,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get featuredOffers => 'نمایاں پیشکشیں';
 
   @override
-  String get registerBusiness => 'کاروبار رجسٹر کریں';
+  String get registerBusiness => 'شاپ رجسٹر کریں';
 
   @override
   String get login => 'لاگ ان';
@@ -90,7 +90,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get favorites => 'پسندیدہ';
 
   @override
-  String get myBusiness => 'میرا کاروبار';
+  String get myBusiness => 'میری شاپ';
 
   @override
   String get logout => 'لاگ آؤٹ';

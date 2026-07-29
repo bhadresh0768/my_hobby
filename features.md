@@ -1,31 +1,31 @@
-# Business Diary - Features Documentation
+# ShopFinder - Features Documentation
 
-Business Diary is a global, cloud-powered business directory designed to connect local business owners with customers through a seamless, "Guest First" experience.
+ShopFinder is a global, cloud-powered directory designed to connect local physical shop owners with customers through a seamless, "Guest First" experience.
 
 ---
 
 ## 👥 User Roles
 
 ### 1. End Users (Customers)
-*   **Guest Access**: Browse, search, and view business profiles without registration.
-*   **Global Search**: Find businesses by name, category, or specific products.
-*   **Location-Based Discovery**: Filter businesses by city, zipcode, country, or proximity.
-*   **Direct Interaction**: One-tap buttons to **Call** or **WhatsApp** business owners.
+*   **Guest Access**: Browse, search, and view shop profiles without registration.
+*   **Global Search**: Find shops by name, category, or specific products.
+*   **Location-Based Discovery**: Filter shops by city, zipcode, country, or proximity.
+*   **Direct Interaction**: One-tap buttons to **Call** or **WhatsApp** shop owners.
 *   **Trust System**: View star ratings and read community reviews.
 *   **Exclusive Promos**: Discover and claim limited-time promo codes (e.g., "First 100 users").
-*   **Multi-Language**: Toggle UI between **English, Hindi, Spanish, Chinese, German, Italian, Urdu, Arabic, French, Bengali, Portuguese, Russian, and Japanese** (expandable to more).
+*   **Multi-Language**: Toggle UI between **English, Hindi, Spanish, Chinese, German, Italian, Urdu, Arabic, French, Bengali, Portuguese, Russian, and Japanese**.
 
 ### 2. Business Owners
-*   **Secure Registration**: Create and manage a professional business profile.
+*   **Secure Registration**: Create and manage a professional shop profile.
 *   **Inventory Management**: Showcase products with images, descriptions, and pricing.
 *   **Promo Engine**: Create "First N People" promo codes to drive rapid customer engagement.
 *   **Feedback Loop**: View and respond to user reviews to build customer relationships.
 *   **Verification Badge**: Get a "Verified" tick after admin approval to build trust.
 
 ### 3. Administrators (Super-User)
-*   **Global Dashboard**: View real-time stats (Total Users, Businesses, Active Promos).
-*   **Moderation Tools**: Delete inappropriate reviews or fraudulent business listings.
-*   **Business Verification**: Review and verify business registrations globally.
+*   **Global Dashboard**: View real-time stats (Total Users, Shops, Active Promos).
+*   **Moderation Tools**: Delete inappropriate reviews or fraudulent shop listings.
+*   **Business Verification**: Review and verify shop registrations globally.
 *   **System Health**: Monitor app growth and promo code usage trends.
 
 ---
@@ -38,24 +38,21 @@ Business Diary is a global, cloud-powered business directory designed to connect
 *   **Clean Architecture**: Modular folder structure (`common/`, `app/`, `admin/`) for easy maintenance.
 
 ### Backend (Firebase)
-*   **Cloud Firestore**: Real-time global database with role-based security rules for data protection.
+*   **Cloud Firestore**: Real-time global database with role-based security rules.
 *   **Firebase Auth**: Secure login for owners/admins and anonymous access for guests.
 *   **Cloud Storage**: High-speed hosting for images with secure access controls.
 *   **Push Notifications (FCM)**: Real-time alerts for new offers and verification updates.
 
 ### Monetization & Scalability
 *   **AdMob Integration**: Google Mobile Ads (v9.0.0) integrated with Banner, Interstitial (Guest-only), and Native ads.
-*   **Next-Gen SDK**: Optimized for performance and reduced app size on Android.
-
-### User Interface
-*   **Material 3 Design**: Utilizing the latest UI principles from Google.
-*   **"Modern Trust" Palette**: Deep Indigo (#3F51B5) and Mint Green (#00C853).
-*   **Responsive Web**: Admin panel optimized for desktop browsers.
 
 ---
 
-## 📈 Roadmap (Future Enhancements)
-- [ ] **Interactive Maps**: View businesses on a real-time GPS map.
+## 📈 Roadmap (Post-Launch Phase)
+
+The following features are scheduled for implementation **after the first launch**:
+
+- [ ] **Interactive Maps**: View shops on a real-time GPS map.
 - [ ] **QR Code Redemption**: Scan codes at physical stores to redeem promos.
-- [ ] **AI-Powered Recommendations**: Suggest businesses based on user behavior.
+- [ ] **AI-Powered Recommendations**: Suggest shops based on user behavior.
 - [ ] **In-App Messaging**: Chat directly with owners without leaving the app.

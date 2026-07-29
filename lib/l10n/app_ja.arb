@@ -1,9 +1,9 @@
 {
-  "appTitle": "ビジネスダイアリー",
+  "appTitle": "ShopFinder",
   "searchHint": "お店、商品を検索...",
   "categories": "カテゴリー",
   "featuredOffers": "おすすめのお得情報",
-  "registerBusiness": "ビジネスを登録",
+  "registerBusiness": "ショップを登録",
   "login": "ログイン",
   "guestUser": "ゲストユーザー",
   "home": "ホーム",
@@ -26,6 +26,6 @@
   "language": "言語",
   "selectLanguage": "言語を選択",
   "favorites": "お気に入り",
-  "myBusiness": "マイビジネス",
+  "myBusiness": "マイショップ",
   "logout": "ログアウト"
 }

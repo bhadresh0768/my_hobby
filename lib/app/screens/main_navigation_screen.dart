@@ -223,10 +223,10 @@ class _ProfileWrapper extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.person_add_alt_1_outlined, color: Colors.blue),
                   title: const Text('Invite Friends'),
-                  subtitle: const Text('Invite your friends to use Business Diary'),
+                  subtitle: const Text('Invite your friends to use ShopFinder'),
                   trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
                   onTap: () => _shareApp(
-                    message: "Hey! Check out Business Diary - A global business directory with real-time promos. Download it now to find local deals! https://play.google.com/store/apps/details?id=com.help.businessdiary",
+                    message: "Hey! Check out ShopFinder - A global directory for local shops with real-time promos. Download it now to find local deals! https://play.google.com/store/apps/details?id=com.help.businessdiary",
                   ),
                 ),
                 ListTile(
@@ -235,7 +235,7 @@ class _ProfileWrapper extends StatelessWidget {
                   subtitle: const Text('Share this app with others'),
                   trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
                   onTap: () => _shareApp(
-                    message: "Business Diary - The ultimate platform for local business discovery and real-time promos. Get it here: https://play.google.com/store/apps/details?id=com.help.businessdiary",
+                    message: "ShopFinder - The ultimate platform for local shop discovery and real-time promos. Get it here: https://play.google.com/store/apps/details?id=com.help.businessdiary",
                   ),
                 ),
                 const Padding(

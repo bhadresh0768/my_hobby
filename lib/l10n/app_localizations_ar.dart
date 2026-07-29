@@ -9,7 +9,7 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'مفكرة الأعمال';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => 'ابحث عن الشركات، المنتجات...';
@@ -21,7 +21,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get featuredOffers => 'عروض مميزة';
 
   @override
-  String get registerBusiness => 'تسجيل عمل تجاري';
+  String get registerBusiness => 'تسجيل متجر';
 
   @override
   String get login => 'تسجيل الدخول';
@@ -90,7 +90,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get favorites => 'المفضلة';
 
   @override
-  String get myBusiness => 'عملي التجاري';
+  String get myBusiness => 'متجري';
 
   @override
   String get logout => 'تسجيل الخروج';

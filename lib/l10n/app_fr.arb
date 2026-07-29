@@ -1,9 +1,9 @@
 {
-  "appTitle": "Journal de Bord",
+  "appTitle": "ShopFinder",
   "searchHint": "Rechercher des entreprises, produits...",
   "categories": "Catégories",
   "featuredOffers": "Offres Vedettes",
-  "registerBusiness": "Enregistrer l'Entreprise",
+  "registerBusiness": "Enregistrer la Boutique",
   "login": "Connexion",
   "guestUser": "Utilisateur Invité",
   "home": "Accueil",
@@ -26,6 +26,6 @@
   "language": "Langue",
   "selectLanguage": "Choisir la Langue",
   "favorites": "Favoris",
-  "myBusiness": "Mon Entreprise",
+  "myBusiness": "Ma Boutique",
   "logout": "Déconnexion"
 }

@@ -9,7 +9,7 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appTitle => 'Бизнес-дневник';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => 'Поиск компаний, товаров...';
@@ -21,7 +21,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get featuredOffers => 'Лучшие предложения';
 
   @override
-  String get registerBusiness => 'Регистрация бизнеса';
+  String get registerBusiness => 'Регистрация магазина';
 
   @override
   String get login => 'Войти';
@@ -90,7 +90,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get favorites => 'Избранное';
 
   @override
-  String get myBusiness => 'Мой бизнес';
+  String get myBusiness => 'Мой магазин';
 
   @override
   String get logout => 'Выйти';

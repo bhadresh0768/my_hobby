@@ -9,7 +9,7 @@ class AppLocalizationsBn extends AppLocalizations {
   AppLocalizationsBn([String locale = 'bn']) : super(locale);
 
   @override
-  String get appTitle => 'বিজনেস ডায়েরি';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => 'ব্যবসা, পণ্য খুঁজুন...';
@@ -21,7 +21,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get featuredOffers => 'সেরা অফার';
 
   @override
-  String get registerBusiness => 'ব্যবসা নিবন্ধন করুন';
+  String get registerBusiness => 'শপ নিবন্ধন করুন';
 
   @override
   String get login => 'লগইন';
@@ -90,7 +90,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get favorites => 'পছন্দসই';
 
   @override
-  String get myBusiness => 'আমার ব্যবসা';
+  String get myBusiness => 'আমার শপ';
 
   @override
   String get logout => 'লগআউট';

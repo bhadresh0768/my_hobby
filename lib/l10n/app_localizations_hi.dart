@@ -9,7 +9,7 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
-  String get appTitle => 'बिजनेस डायरी';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => 'व्यवसाय, उत्पाद खोजें...';
@@ -21,7 +21,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get featuredOffers => 'विशेष ऑफर्स';
 
   @override
-  String get registerBusiness => 'व्यवसाय पंजीकृत करें';
+  String get registerBusiness => 'शॉप पंजीकृत करें';
 
   @override
   String get login => 'लॉगिन करें';
@@ -90,7 +90,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get favorites => 'पसंदीदा';
 
   @override
-  String get myBusiness => 'मेरा व्यवसाय';
+  String get myBusiness => 'मेरी शॉप';
 
   @override
   String get logout => 'लॉगआउट';

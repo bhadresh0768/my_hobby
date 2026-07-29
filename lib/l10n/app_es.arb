@@ -1,9 +1,9 @@
 {
-  "appTitle": "Diario de Negocios",
+  "appTitle": "ShopFinder",
   "searchHint": "Buscar negocios, productos...",
   "categories": "Categorías",
   "featuredOffers": "Ofertas Destacadas",
-  "registerBusiness": "Registrar Negocio",
+  "registerBusiness": "Registrar Tienda",
   "login": "Iniciar sesión",
   "guestUser": "Usuario Invitado",
   "home": "Inicio",
@@ -26,6 +26,6 @@
   "language": "Idioma",
   "selectLanguage": "Seleccionar Idioma",
   "favorites": "Favoritos",
-  "myBusiness": "Mi Negocio",
+  "myBusiness": "Mi Tienda",
   "logout": "Cerrar Sesión"
 }

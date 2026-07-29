@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Icon(Icons.business_center, size: 80, color: Color(0xFF3F51B5)),
                   const SizedBox(height: 16),
                   Text(
-                    'Business Diary',
+                    'ShopFinder',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           color: const Color(0xFF3F51B5),
                           fontWeight: FontWeight.bold,

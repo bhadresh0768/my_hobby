@@ -1,9 +1,9 @@
 {
-  "appTitle": "مفكرة الأعمال",
+  "appTitle": "ShopFinder",
   "searchHint": "ابحث عن الشركات، المنتجات...",
   "categories": "الفئات",
   "featuredOffers": "عروض مميزة",
-  "registerBusiness": "تسجيل عمل تجاري",
+  "registerBusiness": "تسجيل متجر",
   "login": "تسجيل الدخول",
   "guestUser": "مستخدم زائر",
   "home": "الرئيسية",
@@ -26,6 +26,6 @@
   "language": "اللغة",
   "selectLanguage": "اختر اللغة",
   "favorites": "المفضلة",
-  "myBusiness": "عملي التجاري",
+  "myBusiness": "متجري",
   "logout": "تسجيل الخروج"
 }

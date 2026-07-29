@@ -1,9 +1,9 @@
 {
-  "appTitle": "Business-Tagebuch",
+  "appTitle": "ShopFinder",
   "searchHint": "Suche nach Unternehmen, Produkten...",
   "categories": "Kategorien",
   "featuredOffers": "Besondere Angebote",
-  "registerBusiness": "Unternehmen registrieren",
+  "registerBusiness": "Shop registrieren",
   "login": "Anmelden",
   "guestUser": "Gastnutzer",
   "home": "Startseite",
@@ -26,6 +26,6 @@
   "language": "Sprache",
   "selectLanguage": "Sprache auswählen",
   "favorites": "Favoriten",
-  "myBusiness": "Mein Unternehmen",
+  "myBusiness": "Mein Shop",
   "logout": "Abmelden"
 }

@@ -65,7 +65,7 @@ class BusinessDiaryApp extends StatelessWidget {
     return BlocBuilder<LocaleCubit, Locale>(
       builder: (context, locale) {
         return MaterialApp(
-          title: 'Business Diary',
+          title: 'ShopFinder',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           locale: locale,

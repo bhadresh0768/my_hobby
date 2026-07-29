@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'ビジネスダイアリー';
+  String get appTitle => 'ShopFinder';
 
   @override
   String get searchHint => 'お店、商品を検索...';
@@ -21,7 +21,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get featuredOffers => 'おすすめのお得情報';
 
   @override
-  String get registerBusiness => 'ビジネスを登録';
+  String get registerBusiness => 'ショップを登録';
 
   @override
   String get login => 'ログイン';
@@ -90,7 +90,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get favorites => 'お気に入り';
 
   @override
-  String get myBusiness => 'マイビジネス';
+  String get myBusiness => 'マイショップ';
 
   @override
   String get logout => 'ログアウト';

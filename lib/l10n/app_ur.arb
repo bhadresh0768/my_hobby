@@ -1,9 +1,9 @@
 {
-  "appTitle": "بزنس ڈائری",
+  "appTitle": "ShopFinder",
   "searchHint": "کاروبار، مصنوعات تلاش کریں...",
   "categories": "اقسام",
   "featuredOffers": "نمایاں پیشکشیں",
-  "registerBusiness": "کاروبار رجسٹر کریں",
+  "registerBusiness": "شاپ رجسٹر کریں",
   "login": "لاگ ان",
   "guestUser": "مہمان صارف",
   "home": "ہوم",
@@ -26,6 +26,6 @@
   "language": "زبان",
   "selectLanguage": "زبان منتخب کریں",
   "favorites": "پسندیدہ",
-  "myBusiness": "میرا کاروبار",
+  "myBusiness": "میری شاپ",
   "logout": "لاگ آؤٹ"
 }

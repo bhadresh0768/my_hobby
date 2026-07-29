@@ -1,5 +1,5 @@
 name: my_hobby
-description: "Business Diary - A global business directory with real-time promos and admin controls."
+description: "ShopFinder - A global directory for local shops with real-time promos and admin controls."
 publish_to: 'none'
 
 version: 1.0.0+1

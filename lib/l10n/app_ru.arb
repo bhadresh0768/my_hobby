@@ -1,9 +1,9 @@
 {
-  "appTitle": "Бизнес-дневник",
+  "appTitle": "ShopFinder",
   "searchHint": "Поиск компаний, товаров...",
   "categories": "Категории",
   "featuredOffers": "Лучшие предложения",
-  "registerBusiness": "Регистрация бизнеса",
+  "registerBusiness": "Регистрация магазина",
   "login": "Войти",
   "guestUser": "Гость",
   "home": "Главная",
@@ -26,6 +26,6 @@
   "language": "Язык",
   "selectLanguage": "Выбрать язык",
   "favorites": "Избранное",
-  "myBusiness": "Мой бизнес",
+  "myBusiness": "Мой магазин",
   "logout": "Выйти"
 }
