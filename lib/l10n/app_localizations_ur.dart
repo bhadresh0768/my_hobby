@@ -9,7 +9,7 @@ class AppLocalizationsUr extends AppLocalizations {
   AppLocalizationsUr([String locale = 'ur']) : super(locale);
 
   @override
-  String get appTitle => 'ShopFinder';
+  String get appTitle => 'BizNearby';
 
   @override
   String get searchHint => 'کاروبار، مصنوعات تلاش کریں...';

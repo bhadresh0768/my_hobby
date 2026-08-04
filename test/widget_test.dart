@@ -7,6 +7,6 @@ void main() {
     await tester.pumpWidget(const BusinessDiaryApp());
 
     // Verify that the app title is present
-    expect(find.text('ShopFinder'), findsOneWidget);
+    expect(find.text('BizNearby'), findsOneWidget);
   });
 }

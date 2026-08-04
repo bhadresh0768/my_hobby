@@ -200,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            'No businesses in your city yet. Showing Top Rated businesses globally:',
+                                            'No shops in your city yet. Showing Top Rated shops globally:',
                                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                           ),
                                         ),

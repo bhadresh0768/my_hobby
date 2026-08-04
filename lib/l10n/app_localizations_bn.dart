@@ -9,7 +9,7 @@ class AppLocalizationsBn extends AppLocalizations {
   AppLocalizationsBn([String locale = 'bn']) : super(locale);
 
   @override
-  String get appTitle => 'ShopFinder';
+  String get appTitle => 'BizNearby';
 
   @override
   String get searchHint => 'ব্যবসা, পণ্য খুঁজুন...';

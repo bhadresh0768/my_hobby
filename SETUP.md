@@ -1,6 +1,6 @@
 # Project Setup Guide
 
-Follow these steps to set up the development environment for ShopFinder.
+Follow these steps to set up the development environment for BizNearby.
 
 ## 1. Prerequisites
 *   [Flutter SDK](https://docs.flutter.dev/get-started/install) (version specified in `pubspec.yaml`)
@@ -11,7 +11,7 @@ Follow these steps to set up the development environment for ShopFinder.
 ## 2. Firebase Configuration
 The app requires a Firebase connection to function.
 1.  Go to the [Firebase Console](https://console.firebase.google.com/).
-2.  Create a new project named `ShopFinder`.
+2.  Create a new project named `BizNearby`.
 3.  Add an **Android App**:
     *   Package name: `com.example.my_hobby` (check `android/app/build.gradle`)
     *   Download `google-services.json` and place it in `android/app/`.

@@ -1,6 +1,6 @@
 # Database & Security Documentation
 
-ShopFinder uses **Firebase Cloud Firestore** as its primary real-time database. The data is structured to support global scalability and secure role-based access.
+BizNearby uses **Firebase Cloud Firestore** as its primary real-time database. The data is structured to support global scalability and secure role-based access.
 
 ## 🗄 Firestore Schema
 

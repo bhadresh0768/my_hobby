@@ -1,6 +1,6 @@
-# ShopFinder
+# BizNearby
 
-**ShopFinder** is a global, cloud-powered directory for physical shops built with Flutter. It connects customers with local businesses through a "Guest First" experience, featuring real-time promos, location-based discovery, and a robust admin verification system.
+**BizNearby** is a global, cloud-powered directory for physical shops built with Flutter. It connects customers with local businesses through a "Guest First" experience, featuring real-time promos, location-based discovery, and a robust admin verification system.
 
 ## 📱 Key Features (Launch Scope)
 

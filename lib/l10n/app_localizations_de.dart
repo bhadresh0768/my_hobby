@@ -9,7 +9,7 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appTitle => 'ShopFinder';
+  String get appTitle => 'BizNearby';
 
   @override
   String get searchHint => 'Suche nach Unternehmen, Produkten...';

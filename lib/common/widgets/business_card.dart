@@ -44,13 +44,13 @@ class BusinessCard extends StatelessWidget {
                             ),
                             errorWidget: (context, url, error) => Container(
                               color: Colors.grey[200],
-                              child: const Icon(Icons.business, size: 50, color: Colors.grey),
+                              child: const Icon(Icons.shopping_bag_outlined, size: 50, color: Colors.grey),
                             ),
                           )
                         : Container(
                             color: Colors.grey[200],
                             child: const Center(
-                              child: Icon(Icons.business, size: 50, color: Colors.grey),
+                              child: Icon(Icons.shopping_bag_outlined, size: 50, color: Colors.grey),
                             ),
                           ),
                   ),
@@ -155,7 +155,7 @@ class BusinessCard extends StatelessWidget {
                             onPressed: () {
                               if (state.user == null || state.isGuest) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please login to favorite businesses')),
+                                  const SnackBar(content: Text('Please login to favorite shops')),
                                 );
                                 return;
                               }

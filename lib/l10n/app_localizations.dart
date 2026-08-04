@@ -123,13 +123,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'ShopFinder'**
+  /// **'BizNearby'**
   String get appTitle;
 
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search businesses, products...'**
+  /// **'Search shops, products...'**
   String get searchHint;
 
   /// No description provided for @categories.
@@ -147,7 +147,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerBusiness.
   ///
   /// In en, this message translates to:
-  /// **'Register Business'**
+  /// **'Register Shop'**
   String get registerBusiness;
 
   /// No description provided for @login.

@@ -51,12 +51,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.business_center, size: 80, color: Color(0xFF3F51B5)),
+                  const Icon(Icons.shopping_bag_outlined, size: 80, color: Color(0xFF00E5FF)),
                   const SizedBox(height: 16),
                   Text(
-                    'ShopFinder',
+                    'BizNearby',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: const Color(0xFF3F51B5),
+                          color: const Color(0xFF00E5FF),
                           fontWeight: FontWeight.bold,
                         ),
                   ),

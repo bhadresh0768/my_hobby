@@ -12,9 +12,9 @@
 
 ### **Discover Your City. Support Local. Save Big.**
 
-ShopFinder is your ultimate global directory for discovering local retail shops and exclusive deals. Whether you’re looking for a nearby boutique, a tech store, or the best grocery discounts, ShopFinder connects you directly with shop owners in your community and beyond.
+BizNearby is your ultimate global directory for discovering local retail shops and exclusive deals. Whether you’re looking for a nearby boutique, a tech store, or the best grocery discounts, BizNearby connects you directly with shop owners in your community and beyond.
 
-**Why ShopFinder?**
+**Why BizNearby?**
 
 🚀 **GUEST FIRST EXPERIENCE**
 Start browsing immediately! No registration required to search for shops or view profiles. Your privacy and time come first.
@@ -42,7 +42,7 @@ Grow your reach and build a loyal customer base with professional listing tools:
 *   **Drive Engagement**: Launch promo codes to attract new customers instantly.
 *   **Build Trust**: Earn a "Verified" badge and respond to customer reviews.
 
-**Download ShopFinder today and start exploring your local shops!**
+**Download BizNearby today and start exploring your local shops!**
 
 ---
 

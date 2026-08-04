@@ -1,6 +1,6 @@
-# ShopFinder - Features Documentation
+# BizNearby - Features Documentation
 
-ShopFinder is a global, cloud-powered directory designed to connect local physical shop owners with customers through a seamless, "Guest First" experience.
+BizNearby is a global, cloud-powered directory designed to connect local physical shop owners with customers through a seamless, "Guest First" experience.
 
 ---
 

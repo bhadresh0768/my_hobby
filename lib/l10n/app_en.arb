@@ -1,9 +1,9 @@
 {
-  "appTitle": "ShopFinder",
-  "searchHint": "Search businesses, products...",
+  "appTitle": "BizNearby",
+  "searchHint": "Search shops, products...",
   "categories": "Categories",
   "featuredOffers": "Featured Offers",
-  "registerBusiness": "Register Business",
+  "registerBusiness": "Register Shop",
   "login": "Login",
   "guestUser": "Guest User",
   "home": "Home",

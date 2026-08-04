@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'ShopFinder';
+  String get appTitle => 'BizNearby';
 
   @override
-  String get searchHint => 'Search businesses, products...';
+  String get searchHint => 'Search shops, products...';
 
   @override
   String get categories => 'Categories';
@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featuredOffers => 'Featured Offers';
 
   @override
-  String get registerBusiness => 'Register Business';
+  String get registerBusiness => 'Register Shop';
 
   @override
   String get login => 'Login';
